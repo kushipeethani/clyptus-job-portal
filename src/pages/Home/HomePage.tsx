@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import React, { useState } from 'react';
 import { Navbar } from '../../components/Navbar';
 import { Hero } from '../../components/Hero';
 import { CategoryGrid } from '../../components/CategoryGrid';
@@ -26,7 +26,7 @@ export function HomePage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
 
-      <Navbar onLogin={() => triggerLoginPrompt()} />
+      <Navbar onCandidateLogin={() => navigate('/candidate/login')} onRecruiterLogin={() => navigate('/recruiter/login')} />
       <Hero totalJobsCount={INITIAL_COMPANIES.reduce((acc, c) => acc + c.openings, 0)} />
 
       <CategoryGrid
@@ -139,4 +139,3 @@ export function HomePage() {
     </div>
   );
 }
-

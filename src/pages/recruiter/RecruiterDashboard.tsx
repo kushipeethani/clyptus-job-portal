@@ -1,30 +1,49 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import { ClyptusLogo } from "../../components/ClyptusLogo";
-import { recruiterService, type RecruiterProfile } from "../../services/recruiterService";
 import { Briefcase, Plus, Users, LogOut, Building2, TrendingUp, CheckCircle, Clock, Eye } from "lucide-react";
 
 export function RecruiterDashboard() {
-  const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<RecruiterProfile | null>(null);
+  // Mock data for frontend preview
+  const user = { name: "Sarah Recruiter", email: "sarah@company.com" };
+  const [profile, setProfile] = useState<any | null>({
+    companyName: "Acme Corp",
+    totalViews: 1205,
+    totalApplicants: 342,
+    postedJobs: [
+      { id: "1", title: "Senior Frontend Engineer", location: "Remote", type: "Full-time", applicationsCount: 45, views: 320, postedAt: "2 days ago" },
+      { id: "2", title: "Product Manager", location: "New York", type: "Full-time", applicationsCount: 12, views: 150, postedAt: "5 days ago" }
+    ]
+  });
+  
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"jobs" | "analytics">("jobs");
   const [showPostForm, setShowPostForm] = useState(false);
   const [newJob, setNewJob] = useState({ title: "", location: "", jobType: "Full Time", description: "" });
 
   useEffect(() => {
-    if (!isAuthenticated) { navigate("/recruiter/login"); return; }
-    recruiterService.getProfile(user!.id).then(p => { setProfile(p); setLoading(false); });
-  }, [isAuthenticated, user, navigate]);
+    // Simulate loading for UI
+    setTimeout(() => setLoading(false), 500);
+  }, []);
 
-  const handleLogout = () => { logout(); navigate("/"); };
+  const handleLogout = () => { navigate("/"); };
 
-  const handlePostJob = async (e: React.FormEvent) => {
+  const handlePostJob = (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile) return;
-    const posted = await recruiterService.postJob({ ...newJob, company: profile.companyName });
+    
+    // Frontend only update
+    const posted = {
+      id: Math.random().toString(),
+      title: newJob.title,
+      location: newJob.location,
+      type: newJob.jobType,
+      applicationsCount: 0,
+      views: 0,
+      postedAt: "Just now"
+    };
+    
     setProfile(prev => prev ? { ...prev, postedJobs: [posted, ...prev.postedJobs] } : prev);
     setShowPostForm(false);
     setNewJob({ title: "", location: "", jobType: "Full Time", description: "" });
@@ -73,7 +92,7 @@ export function RecruiterDashboard() {
               {[
                 [String(profile?.postedJobs.length ?? 0), "Active Jobs", Briefcase],
                 [String(profile?.postedJobs.reduce((a, j) => a + j.applicantsCount, 0)), "Total Applicants", Users],
-              ].map(([val, label]: any) => (
+              ].map(([val, label, Icon]: any) => (
                 <div key={label} style={{ textAlign: "center" }}>
                   <div style={{ fontSize: "1.8rem", fontWeight: 800, color: "#FF5500" }}>{val}</div>
                   <div style={{ color: "#64748B", fontSize: "0.78rem", fontWeight: 600 }}>{label}</div>

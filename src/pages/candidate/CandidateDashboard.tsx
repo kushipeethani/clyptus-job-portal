@@ -1,33 +1,43 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import { ClyptusLogo } from "../../components/ClyptusLogo";
-import { candidateService, type CandidateProfile } from "../../services/candidateService";
 import type { Job } from "../../types/job";
+import { INITIAL_COMPANIES } from "../../data/mockData";
 import { Briefcase, BookmarkCheck, User, LogOut, Star, MapPin, Clock, ChevronRight, TrendingUp } from "lucide-react";
 
 export function CandidateDashboard() {
-  const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<CandidateProfile | null>(null);
-  const [jobs, setJobs] = useState<Job[]>([]);
+  // Mock data for frontend preview
+  const user = { name: "John Doe", email: "john@example.com" };
+  const [profile, setProfile] = useState<any | null>({
+    headline: "Frontend Developer",
+    location: "Remote",
+    appliedCount: 12,
+    savedCount: 5,
+    viewsCount: 42
+  });
+  
+  // Create mock jobs based on INITIAL_COMPANIES
+  const mockJobs = INITIAL_COMPANIES.slice(0, 3).map(c => ({
+    id: c.id,
+    title: `Software Engineer at ${c.name}`,
+    company: c.name,
+    location: "Remote",
+    type: "Full-time",
+    salary: "$120k - $150k",
+    postedAt: "2 days ago",
+    logoUrl: c.logoUrl
+  }));
+  const [jobs, setJobs] = useState<any[]>(mockJobs);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "saved" | "profile">("overview");
 
   useEffect(() => {
-    if (!isAuthenticated) { navigate("/candidate/login"); return; }
-    (async () => {
-      const [p, j] = await Promise.all([
-        candidateService.getProfile(user!.id),
-        candidateService.getRecommendedJobs()
-      ]);
-      setProfile(p);
-      setJobs(j);
-      setLoading(false);
-    })();
-  }, [isAuthenticated, user, navigate]);
+    // Simulate loading for UI
+    setTimeout(() => setLoading(false), 500);
+  }, []);
 
-  const handleLogout = () => { logout(); navigate("/"); };
+  const handleLogout = () => { navigate("/"); };
 
   if (loading) return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#06101E" }}>

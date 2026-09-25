@@ -4,17 +4,20 @@ import {
   Building2, 
   Menu, 
   X, 
-  LogIn, 
+  User, 
+  Briefcase,
   Grid 
 } from 'lucide-react';
 import { ClyptusLogo } from './ClyptusLogo';
 
 interface NavbarProps {
-  onLogin?: () => void;
+  onCandidateLogin?: () => void;
+  onRecruiterLogin?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  onLogin = () => {}
+  onCandidateLogin = () => {},
+  onRecruiterLogin = () => {}
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -123,28 +126,60 @@ export const Navbar: React.FC<NavbarProps> = ({
             </a>
           </nav>
 
-          {/* 3. Right Action: Login CTA with equal breathing room */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            
-            <button 
+          {/* 3. Right Actions: Candidate & Recruiter Login */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+
+            {/* Candidate Button */}
+            <button
               type="button"
-              onClick={onLogin}
+              onClick={onCandidateLogin}
               className="btn-primary"
               style={{
-                padding: '11px 30px',
-                fontSize: '0.96rem',
+                padding: '10px 22px',
+                fontSize: '0.92rem',
                 borderRadius: '12px',
                 fontWeight: 700,
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '8px',
+                gap: '7px',
                 boxShadow: '0 6px 18px rgba(255, 102, 0, 0.35)',
                 transition: 'all 0.2s ease'
               }}
             >
-              <LogIn size={18} />
-              <span>Login</span>
+              <User size={16} />
+              <span>Candidate</span>
+            </button>
+
+            {/* Recruiter Button */}
+            <button
+              type="button"
+              onClick={onRecruiterLogin}
+              style={{
+                padding: '10px 22px',
+                fontSize: '0.92rem',
+                borderRadius: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '7px',
+                background: 'transparent',
+                border: '2px solid #06101E',
+                color: '#06101E',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLButtonElement).style.background = '#06101E';
+                (e.currentTarget as HTMLButtonElement).style.color = '#FFFFFF';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                (e.currentTarget as HTMLButtonElement).style.color = '#06101E';
+              }}
+            >
+              <Briefcase size={16} />
+              <span>Recruiter</span>
             </button>
 
             {/* Mobile Menu Toggle Button */}
@@ -171,17 +206,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           }}>
             <a href="#categories-section" onClick={() => setMobileMenuOpen(false)} style={{ padding: '10px 12px', fontWeight: 600, color: '#1E293B', borderRadius: '8px' }}>Categories</a>
             <a href="#companies-section" onClick={() => setMobileMenuOpen(false)} style={{ padding: '10px 12px', fontWeight: 600, color: '#1E293B', borderRadius: '8px' }}>Top MNC Companies</a>
-            <button 
+            <button
               type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onLogin();
-              }} 
-              className="btn-primary" 
+              onClick={() => { setMobileMenuOpen(false); onCandidateLogin(); }}
+              className="btn-primary"
               style={{ padding: '12px', textAlign: 'center', borderRadius: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '10px' }}
             >
-              <LogIn size={18} />
-              <span>Login</span>
+              <User size={18} />
+              <span>Candidate Login</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setMobileMenuOpen(false); onRecruiterLogin(); }}
+              style={{ padding: '12px', textAlign: 'center', borderRadius: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'transparent', border: '2px solid #06101E', color: '#06101E', cursor: 'pointer' }}
+            >
+              <Briefcase size={18} />
+              <span>Recruiter Login</span>
             </button>
           </div>
         )}

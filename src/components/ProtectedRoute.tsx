@@ -1,23 +1,11 @@
-﻿import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import type { UserRole } from '../types/auth';
+import React from 'react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: UserRole;
+  requiredRole?: string;
 }
 
-export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { isAuthenticated, user } = useAuth();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-
-  if (requiredRole && user?.role !== requiredRole) {
-    return <Navigate to="/" replace />;
-  }
-
+export function ProtectedRoute({ children }: ProtectedRouteProps) {
+  // Frontend only: bypass auth checks and render the dashboard layout directly
   return <>{children}</>;
 }
