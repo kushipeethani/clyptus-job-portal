@@ -1,0 +1,396 @@
+:root {
+  /* Clyptus Official Brand Palette from Logo */
+  --primary-orange: #FF5500;
+  --primary-orange-hover: #E64800;
+  --primary-orange-active: #CC3D00;
+  --primary-orange-light: #FFF3EC;
+  --primary-orange-glow: rgba(255, 85, 0, 0.28);
+  --primary-orange-border: #FFCBB3;
+  --primary-orange-gradient: linear-gradient(135deg, #FF6600 0%, #FF3D00 100%);
+  
+  /* Clyptus Deep Navy & Slate Palette */
+  --clyptus-navy-deep: #06101E;
+  --clyptus-navy-surface: #0B172B;
+  --clyptus-navy-light: #162744;
+  --secondary-dark: #06101E;
+  --text-main: #0B172B;
+  --text-muted: #52637A;
+  --text-light: #8A9BA8;
+  
+  /* Backgrounds & Neutrals */
+  --bg-page: #FAFAFA;
+  --bg-card: #FFFFFF;
+  --bg-subtle: #F8FAFC;
+  --bg-glass: rgba(255, 255, 255, 0.94);
+  
+  --border-color: #E2E8F0;
+  --border-subtle: #F1F5F9;
+  
+  --shadow-sm: 0 1px 3px 0 rgba(6, 16, 30, 0.05);
+  --shadow-md: 0 4px 10px -2px rgba(6, 16, 30, 0.08), 0 2px 4px -1px rgba(6, 16, 30, 0.04);
+  --shadow-lg: 0 12px 28px -4px rgba(6, 16, 30, 0.1), 0 4px 12px -2px rgba(6, 16, 30, 0.04);
+  --shadow-orange: 0 10px 25px -5px rgba(255, 85, 0, 0.35);
+  --shadow-card-hover: 0 20px 32px -10px rgba(255, 85, 0, 0.14), 0 8px 16px -4px rgba(6, 16, 30, 0.06);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 9999px;
+
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-family: var(--font-body);
+  color: var(--text-main);
+  background-color: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--secondary-dark);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input, select, textarea {
+  font-family: inherit;
+  outline: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-orange);
+}
+
+/* Layout Utilities */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+}
+
+/* Orange Accent Pill */
+.badge-orange {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary-orange-light);
+  color: var(--primary-orange);
+  border: 1px solid var(--primary-orange-border);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.825rem;
+  font-weight: 600;
+}
+
+.badge-tag {
+  display: inline-flex;
+  align-items: center;
+  background: #F1F5F9;
+  color: #475569;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.badge-tag:hover {
+  background: #E2E8F0;
+  color: var(--clyptus-navy-deep);
+}
+
+/* Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #FF6600 0%, #FF3D00 100%);
+  color: #FFFFFF;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 14px rgba(255, 85, 0, 0.35);
+  transition: all 0.25s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(255, 85, 0, 0.48);
+  filter: brightness(1.04);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #FFFFFF;
+  color: var(--primary-orange);
+  border: 1.5px solid var(--primary-orange);
+  padding: 11px 22px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
+}
+
+.btn-outline:hover {
+  background: var(--primary-orange-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 85, 0, 0.18);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #F1F5F9;
+  color: #334155;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #E2E8F0;
+  color: var(--clyptus-navy-deep);
+}
+
+/* Glassmorphism Navigation (Frozen Header) */
+.glass-nav {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 4px 20px -2px rgba(6, 16, 30, 0.05);
+}
+
+.card-white {
+  background: #FFFFFF;
+  border: 1px solid #EDF2F7;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.card-white:hover {
+  border-color: var(--primary-orange-border);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-4px);
+}
+
+/* Shimmer & Glow Effects */
+.orange-glow {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(255, 85, 0, 0.12) 0%, rgba(255, 85, 0, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Pulsing Hot Badge */
+@keyframes pulse-orange {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 85, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(255, 85, 0, 0);
+  }
+}
+
+.pulse-badge {
+  animation: pulse-orange 2s infinite;
+}
+
+/* Modal Backdrop */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 16, 30, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-content {
+  background: #FFFFFF;
+  border-radius: var(--radius-xl);
+  max-width: 650px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(6, 16, 30, 0.3);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid #FFCBB3;
+}
+
+/* Toast styling */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  background: #FFFFFF;
+  border-left: 4px solid var(--primary-orange);
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 25px rgba(6, 16, 30, 0.12);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Utilities */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Infinite Scrolling Right-to-Left Marquee for Top MNC Companies */
+@keyframes scrollRightToLeft {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-container {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.marquee-container::before,
+.marquee-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.marquee-container::before {
+  left: 0;
+  background: linear-gradient(to right, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.marquee-container::after {
+  right: 0;
+  background: linear-gradient(to left, #FFFFFF 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: scrollRightToLeft 24s linear infinite;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.marquee-track-slow {
+  display: flex;
+  width: max-content;
+  animation: scrollRightToLeft 34s linear infinite;
+}
+
+.marquee-track-slow:hover {
+  animation-play-state: paused;
+}
