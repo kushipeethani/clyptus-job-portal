@@ -48,12 +48,12 @@ export const AppDownloadBanner: React.FC = () => {
             </h2>
 
             <p style={{ color: '#94A3B8', fontSize: '1rem', lineHeight: 1.6, marginBottom: '24px', maxWidth: '540px' }}>
-              Download the Clyptus Careers app to get real-time recruiter message alerts, 1-tap fast apply, and salary insight notifications directly on iOS & Android.
+              Download the Clyptus Careers app to get real-time message alerts, 1-tap fast apply, and salary insight notifications directly on iOS & Android.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '28px' }}>
               {[
-                'Instant push notifications when recruiters view your profile',
+                'Instant push notifications when your profile is viewed',
                 'In-app direct chat with verified hiring managers',
                 'Offline bookmarking and personalized daily job digests'
               ].map((feat, i) => (

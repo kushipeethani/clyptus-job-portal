@@ -12,12 +12,10 @@ import { ClyptusLogo } from './ClyptusLogo';
 
 interface NavbarProps {
   onCandidateLogin?: () => void;
-  onRecruiterLogin?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  onCandidateLogin = () => {},
-  onRecruiterLogin = () => {}
+  onCandidateLogin = () => {}
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -151,37 +149,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>Candidate</span>
             </button>
 
-            {/* Recruiter Button */}
-            <button
-              type="button"
-              onClick={onRecruiterLogin}
-              style={{
-                padding: '10px 22px',
-                fontSize: '0.92rem',
-                borderRadius: '12px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '7px',
-                background: 'transparent',
-                border: '2px solid #06101E',
-                color: '#06101E',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLButtonElement).style.background = '#06101E';
-                (e.currentTarget as HTMLButtonElement).style.color = '#FFFFFF';
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-                (e.currentTarget as HTMLButtonElement).style.color = '#06101E';
-              }}
-            >
-              <Briefcase size={16} />
-              <span>Recruiter</span>
-            </button>
-
             {/* Mobile Menu Toggle Button */}
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -214,14 +181,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <User size={18} />
               <span>Candidate Login</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => { setMobileMenuOpen(false); onRecruiterLogin(); }}
-              style={{ padding: '12px', textAlign: 'center', borderRadius: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'transparent', border: '2px solid #06101E', color: '#06101E', cursor: 'pointer' }}
-            >
-              <Briefcase size={18} />
-              <span>Recruiter Login</span>
             </button>
           </div>
         )}

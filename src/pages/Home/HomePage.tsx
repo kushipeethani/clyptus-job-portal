@@ -26,7 +26,7 @@ export function HomePage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
 
-      <Navbar onCandidateLogin={() => navigate('/candidate/login')} onRecruiterLogin={() => navigate('/recruiter/login')} />
+      <Navbar onCandidateLogin={() => navigate('/candidate/login')} />
       <Hero totalJobsCount={INITIAL_COMPANIES.reduce((acc, c) => acc + c.openings, 0)} />
 
       <CategoryGrid
@@ -120,17 +120,7 @@ export function HomePage() {
                 className="btn-primary"
                 style={{ width: '100%', padding: '12px', borderRadius: '12px', fontSize: '0.95rem', fontWeight: 700 }}
               >
-                Login as Candidate
-              </button>
-              <button
-                onClick={() => { setLoginAlertOpen(false); navigate('/recruiter/login'); }}
-                style={{
-                  width: '100%', padding: '12px', borderRadius: '12px',
-                  fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer',
-                  background: 'transparent', border: '2px solid #06101E', color: '#06101E'
-                }}
-              >
-                Login as Recruiter
+                Login to Continue
               </button>
             </div>
           </div>

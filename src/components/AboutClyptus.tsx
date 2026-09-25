@@ -31,7 +31,7 @@ export const AboutClyptus: React.FC<AboutClyptusProps> = ({
             More Than Just a Job Portal
           </h2>
           <p style={{ color: '#64748B', fontSize: '1.02rem', lineHeight: 1.6, marginTop: '12px' }}>
-            <strong>Clyptus</strong> transforms how tech and product professionals discover opportunities. Unlike traditional job portals with outdated listings and recruiter spam, Clyptus guarantees 100% verified active openings, transparent salary bands, and direct fast-track corporate hiring.
+            <strong>Clyptus</strong> transforms how tech and product professionals discover opportunities. Unlike traditional job portals with outdated listings and spam, Clyptus guarantees 100% verified active openings, transparent salary bands, and direct fast-track corporate hiring.
           </p>
         </div>
 
@@ -111,7 +111,7 @@ export const AboutClyptus: React.FC<AboutClyptusProps> = ({
               Easy to Use & 1-Click Apply
             </h3>
             <p style={{ color: '#64748B', fontSize: '0.88rem', lineHeight: 1.6 }}>
-              Seamless experience for both candidates and recruiters with rapid application tracking and real-time status updates.
+              Seamless experience for candidates with rapid application tracking and real-time status updates.
             </p>
           </div>
 

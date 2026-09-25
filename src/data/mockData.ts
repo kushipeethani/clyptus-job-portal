@@ -587,7 +587,7 @@ export const TESTIMONIALS: Testimonial[] = [
 export const FAQS = [
   {
     question: 'How is Clyptus Job Portal different from Naukri, Indeed, and Foundit?',
-    answer: 'Clyptus combines modern AI-powered skill matching, transparent salary benchmark bands, 1-click instant applications, and verified company direct connections. Unlike traditional portals with spam and outdated listings, Clyptus guarantees 100% verified active openings with real-time recruiter response tracking.'
+    answer: 'Clyptus combines modern AI-powered skill matching, transparent salary benchmark bands, 1-click instant applications, and verified company direct connections. Unlike traditional portals with spam and outdated listings, Clyptus guarantees 100% verified active openings with real-time response tracking.'
   },
   {
     question: 'Is Clyptus completely free for job seekers?',
@@ -598,8 +598,8 @@ export const FAQS = [
     answer: 'Our proprietary ATS engine parses your uploaded resume against real employer job specifications, analyzing keyword density, structural impact, action verbs, and quantifiable achievements to give you a score out of 100 and precise improvement pointers.'
   },
   {
-    question: 'How can recruiters and companies post jobs on Clyptus?',
-    answer: 'Employers can click the "Post a Job" button in the top navigation or use our recruiter portal. It takes under 2 minutes to post a vacancy, and our intelligent algorithm immediately surfaces high-match candidates from our verified talent pool.'
+    question: 'How do companies post jobs on Clyptus?',
+    answer: 'Companies use our exclusive enterprise portal. It takes under 2 minutes to post a vacancy, and our intelligent algorithm immediately surfaces high-match candidates from our verified talent pool.'
   },
   {
     question: 'Are remote and international jobs supported?',
