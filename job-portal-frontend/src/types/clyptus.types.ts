@@ -126,7 +126,7 @@ export interface Application {
   coverLetter?: string;
 }
 
-export type InterviewStatus = 'SCHEDULED' | 'CONFIRMED' | 'RESCHEDULED' | 'COMPLETED' | 'CANCELLED';
+export type InterviewStatus = 'SCHEDULED' | 'CONFIRMED' | 'RESCHEDULED' | 'PENDING_FEEDBACK' | 'COMPLETED' | 'CANCELLED';
 
 export interface Interview {
   id: string;
@@ -137,11 +137,16 @@ export interface Interview {
   candidateName: string;
   recruiterId: string;
   recruiterName: string;
+  interviewerName?: string;
+  interviewerRole?: string;
   interviewType: 'TECHNICAL_ROUND_1' | 'SYSTEM_DESIGN' | 'HR_CULTURE_FIT' | 'FINAL_ROUND';
   date: string;
   time: string;
   meetingLink: string;
   notes: string;
+  feedbackNotes?: string;
+  feedbackRating?: number;
+  feedbackStatus?: 'PENDING' | 'SUBMITTED' | 'APPROVED';
   status: InterviewStatus;
 }
 

@@ -9,6 +9,7 @@ import { RolesPermissions } from '../pages/organization-super-admin/RolesPermiss
 import { CreditReports } from '../pages/organization-super-admin/CreditReports';
 import { OrgSuperAdminOffers } from '../pages/organization-super-admin/Offers';
 import { OrgSuperAdminAuditLogs } from '../pages/organization-super-admin/AuditLogs';
+import { OrgSuperAdminInterviews } from '../pages/organization-super-admin/Interviews';
 import { Settings } from '../pages/organization/Settings';
 import { Jobs } from '../pages/organization/Jobs';
 import { CandidateSearch } from '../pages/organization/CandidateSearch';
@@ -31,7 +32,7 @@ export const OrgSuperAdminRoutes: React.FC = () => {
         <Route path="jobs" element={<Jobs />} />
         <Route path="candidates" element={<CandidateSearch />} />
         <Route path="applications" element={<Jobs />} />
-        <Route path="interviews" element={<Jobs />} />
+        <Route path="interviews" element={<OrgSuperAdminInterviews />} />
         <Route path="*" element={<Navigate to="dashboard" replace />} />
       </Route>
     </Routes>
