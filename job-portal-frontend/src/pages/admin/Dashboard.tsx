@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Users, Briefcase, FileCheck, Coins, ShieldCheck, ChevronRight } from 'lucide-react';
 import { OrganizationCreditAccount, RecruiterUser } from '../../types/clyptus.types';
-import { INITIAL_RECRUITERS, INITIAL_JOBS, INITIAL_APPLICATIONS } from '../../store/clyptus.store';
+import { INITIAL_RECRUITERS, INITIAL_JOBS, INITIAL_APPLICATIONS, getStoreRecruiters } from '../../store/clyptus.store';
 
 interface ContextType {
   creditAccount: OrganizationCreditAccount;
@@ -10,7 +10,7 @@ interface ContextType {
 
 export const OrgAdminDashboard: React.FC = () => {
   const { creditAccount: contextCreditAccount } = useOutletContext<ContextType>();
-  const [recruiters, setRecruiters] = useState<RecruiterUser[]>(INITIAL_RECRUITERS);
+  const [recruiters, setRecruiters] = useState<RecruiterUser[]>(getStoreRecruiters());
   const [liveBalance, setLiveBalance] = useState<number>(contextCreditAccount?.balance || 1000);
 
   const fetchLiveDashboardData = async () => {
@@ -19,6 +19,8 @@ export const OrgAdminDashboard: React.FC = () => {
       const recJson = await recRes.json();
       if (recJson.success && recJson.data) {
         setRecruiters(recJson.data);
+      } else {
+        setRecruiters(getStoreRecruiters());
       }
 
       const accRes = await fetch('http://localhost:5000/api/v1/credits/account');
@@ -27,14 +29,22 @@ export const OrgAdminDashboard: React.FC = () => {
         setLiveBalance(accJson.data.balance);
       }
     } catch (err) {
-      console.warn('Backend API offline.');
+      setRecruiters(getStoreRecruiters());
     }
   };
 
   useEffect(() => {
     fetchLiveDashboardData();
-    const interval = setInterval(fetchLiveDashboardData, 3000);
-    return () => clearInterval(interval);
+
+    const handleSync = () => {
+      setRecruiters(getStoreRecruiters());
+    };
+    window.addEventListener('clyptus_store_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('clyptus_store_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, []);
 
   return (

@@ -454,3 +454,107 @@ export const INITIAL_AUDIT_LOGS: AuditLog[] = [
     ip: '192.168.1.71',
   }
 ];
+
+// Helper functions for Reactive Store Sync across Portals
+
+export const getStoreRecruiters = (): RecruiterUser[] => {
+  try {
+    const data = localStorage.getItem('clyptus_recruiters');
+    if (data) return JSON.parse(data);
+  } catch (err) {}
+  return INITIAL_RECRUITERS;
+};
+
+export const saveStoreRecruiters = (recruiters: RecruiterUser[]): void => {
+  try {
+    localStorage.setItem('clyptus_recruiters', JSON.stringify(recruiters));
+    window.dispatchEvent(new CustomEvent('clyptus_store_updated', { detail: { type: 'RECRUITERS' } }));
+  } catch (err) {}
+};
+
+export const getStoreAuditLogs = (): AuditLog[] => {
+  try {
+    const data = localStorage.getItem('clyptus_audit_logs');
+    if (data) return JSON.parse(data);
+  } catch (err) {}
+  return INITIAL_AUDIT_LOGS;
+};
+
+export const addAuditLog = (log: Omit<AuditLog, 'id' | 'organizationId' | 'timestamp' | 'ip' | 'userId'> & { id?: string; userId?: string; timestamp?: string; ip?: string }): AuditLog => {
+  const currentLogs = getStoreAuditLogs();
+  const newLog: AuditLog = {
+    id: log.id || `audit_${Date.now()}`,
+    organizationId: 'org_abc_tech',
+    userId: log.userId || 'usr_sys',
+    userName: log.userName,
+    role: log.role,
+    action: log.action,
+    resource: log.resource,
+    resourceId: log.resourceId,
+    dimension: log.dimension || 'ACTION',
+    details: log.details || '',
+    timestamp: log.timestamp || new Date().toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' }),
+    ip: log.ip || '192.168.1.100',
+  };
+
+  const updatedLogs = [newLog, ...currentLogs];
+  try {
+    localStorage.setItem('clyptus_audit_logs', JSON.stringify(updatedLogs));
+    window.dispatchEvent(new CustomEvent('clyptus_store_updated', { detail: { type: 'AUDIT_LOGS' } }));
+  } catch (err) {}
+
+  return newLog;
+};
+
+export const logAction = (
+  userName: string,
+  role: 'SUPER_ADMIN' | 'ORGANIZATION_ADMIN' | 'RECRUITER' | string,
+  action: string,
+  resource: string,
+  resourceId: string,
+  dimension: AuditLog['dimension'],
+  details: string
+): AuditLog => {
+  return addAuditLog({
+    userName,
+    role,
+    action,
+    resource,
+    resourceId,
+    dimension,
+    details,
+  });
+};
+
+export const allocateCreditsToRecruiter = (recruiterId: string, additionalCredits: number, allocatorName: string = 'Super Admin'): RecruiterUser[] => {
+  const recruiters = getStoreRecruiters();
+  const updated = recruiters.map((rec) => {
+    if (rec.id === recruiterId || rec.email === recruiterId) {
+      const currentAllocated = rec.allocatedCredits || 50;
+      const currentBalance = rec.remainingBalance !== undefined ? rec.remainingBalance : (currentAllocated - (rec.totalCreditsUsed || 0));
+      const newAllocated = currentAllocated + additionalCredits;
+      const newBalance = currentBalance + additionalCredits;
+      
+      logAction(
+        allocatorName,
+        'SUPER_ADMIN',
+        'TOKEN_ALLOCATION',
+        'CreditWallet',
+        rec.id,
+        'TOKEN',
+        `Allocated +${additionalCredits} credits to recruiter ${rec.name} (${rec.email}). New balance: ${newBalance} credits.`
+      );
+
+      return {
+        ...rec,
+        allocatedCredits: newAllocated,
+        remainingBalance: newBalance,
+      };
+    }
+    return rec;
+  });
+
+  saveStoreRecruiters(updated);
+  return updated;
+};
+

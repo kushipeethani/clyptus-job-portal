@@ -11,7 +11,7 @@ import {
   Key
 } from 'lucide-react';
 import { RecruiterUser } from '../../types/clyptus.types';
-import { INITIAL_RECRUITERS } from '../../store/clyptus.store';
+import { INITIAL_RECRUITERS, getStoreRecruiters, saveStoreRecruiters, allocateCreditsToRecruiter, logAction } from '../../store/clyptus.store';
 
 interface ContextType {
   showToast: (msg: string) => void;
@@ -19,7 +19,7 @@ interface ContextType {
 
 export const AdminRecruiterManagement: React.FC = () => {
   const { showToast } = useOutletContext<ContextType>();
-  const [recruiters, setRecruiters] = useState<RecruiterUser[]>(INITIAL_RECRUITERS);
+  const [recruiters, setRecruiters] = useState<RecruiterUser[]>(getStoreRecruiters());
 
   // Add Recruiter Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -40,27 +40,54 @@ export const AdminRecruiterManagement: React.FC = () => {
   const [creditModalUser, setCreditModalUser] = useState<RecruiterUser | null>(null);
   const [additionalCredits, setAdditionalCredits] = useState<number>(100);
 
-  // Live REST API Sync with Super Admin & Backend
+  // Live REST API & Reactive Store Sync with Super Admin
   const fetchRecruiters = async () => {
     try {
       const res = await fetch('http://localhost:5000/api/v1/recruiters');
       const json = await res.json();
       if (json.success && json.data) {
         setRecruiters(json.data);
+        saveStoreRecruiters(json.data);
+      } else {
+        setRecruiters(getStoreRecruiters());
       }
     } catch (err) {
-      console.warn('Backend recruiter API offline.');
+      setRecruiters(getStoreRecruiters());
     }
   };
 
   useEffect(() => {
     fetchRecruiters();
-    const interval = setInterval(fetchRecruiters, 3000);
-    return () => clearInterval(interval);
+
+    const handleSync = () => {
+      setRecruiters(getStoreRecruiters());
+    };
+    window.addEventListener('clyptus_store_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('clyptus_store_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, []);
 
   const handleAddRecruiter = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const newRecruiter: RecruiterUser = {
+      id: `rec_${Date.now()}`,
+      organizationId: 'org_abc_tech',
+      name: formName,
+      email: formEmail,
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formName)}&background=4F46E5&color=fff`,
+      status: 'ACTIVE',
+      activeJobsCount: 0,
+      profileViewsCount: 0,
+      resumeDownloadsCount: 0,
+      totalCreditsUsed: 0,
+      allocatedCredits: formCredits,
+      remainingBalance: formCredits,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
 
     try {
       const res = await fetch('http://localhost:5000/api/v1/recruiters', {
@@ -74,47 +101,40 @@ export const AdminRecruiterManagement: React.FC = () => {
       });
       const json = await res.json();
       if (json.success) {
-        fetchRecruiters();
-        setIsAddModalOpen(false);
-
         setCreatedCredentials({
           name: formName,
           email: formEmail,
           password: json.generatedCredentials?.temporaryPassword || formPassword || 'ClyptusRecruiter@2026',
           credits: formCredits,
         });
-
-        showToast(`Admin created recruiter ${formName} with generated credentials!`);
       }
-    } catch (err) {
-      const newRecruiter: RecruiterUser = {
-        id: `rec_${Date.now()}`,
-        organizationId: 'org_abc_tech',
-        name: formName,
-        email: formEmail,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formName)}&background=4F46E5&color=fff`,
-        status: 'ACTIVE',
-        activeJobsCount: 0,
-        profileViewsCount: 0,
-        resumeDownloadsCount: 0,
-        totalCreditsUsed: 0,
-        allocatedCredits: formCredits,
-        remainingBalance: formCredits,
-        createdAt: new Date().toISOString().split('T')[0],
-      };
+    } catch (err) {}
 
-      setRecruiters([newRecruiter, ...recruiters]);
-      setIsAddModalOpen(false);
+    const updated = [newRecruiter, ...getStoreRecruiters()];
+    saveStoreRecruiters(updated);
+    setRecruiters(updated);
+    setIsAddModalOpen(false);
 
+    if (!createdCredentials) {
       setCreatedCredentials({
         name: formName,
         email: formEmail,
         password: formPassword || 'ClyptusRecruiter@2026',
         credits: formCredits,
       });
-
-      showToast(`Admin created recruiter ${formName} with generated credentials!`);
     }
+
+    logAction(
+      'Marcus Vance',
+      'ORGANIZATION_ADMIN',
+      'RECRUITER_ADDED',
+      'RecruiterUser',
+      newRecruiter.id,
+      'USER',
+      `Admin created recruiter account for ${formName} (${formEmail}) with ${formCredits} initial credits.`
+    );
+
+    showToast(`Admin created recruiter ${formName} with generated credentials!`);
 
     setFormName('');
     setFormEmail('');
@@ -126,10 +146,22 @@ export const AdminRecruiterManagement: React.FC = () => {
     if (confirm(`Admin Action: Are you sure you want to remove recruiter "${name}"?`)) {
       try {
         await fetch(`http://localhost:5000/api/v1/recruiters/${id}`, { method: 'DELETE' });
-        fetchRecruiters();
-      } catch (err) {
-        setRecruiters(recruiters.filter((r) => r.id !== id));
-      }
+      } catch (err) {}
+
+      const updated = getStoreRecruiters().filter((r) => r.id !== id);
+      saveStoreRecruiters(updated);
+      setRecruiters(updated);
+
+      logAction(
+        'Marcus Vance',
+        'ORGANIZATION_ADMIN',
+        'RECRUITER_REMOVED',
+        'RecruiterUser',
+        id,
+        'USER',
+        `Admin removed recruiter ${name} (${id}) from organization.`
+      );
+
       showToast(`Removed recruiter ${name}.`);
     }
   };
@@ -138,8 +170,13 @@ export const AdminRecruiterManagement: React.FC = () => {
     e.preventDefault();
     if (!creditModalUser) return;
 
+    // 1. Update store and log audit event reactively
+    const updated = allocateCreditsToRecruiter(creditModalUser.id, additionalCredits, 'Marcus Vance (Organization Admin)');
+    setRecruiters(updated);
+
+    // 2. Call API if available
     try {
-      const res = await fetch('http://localhost:5000/api/v1/credits/allocate', {
+      await fetch('http://localhost:5000/api/v1/credits/allocate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -147,19 +184,9 @@ export const AdminRecruiterManagement: React.FC = () => {
           credits: additionalCredits
         })
       });
-      const json = await res.json();
-      if (json.success) {
-        fetchRecruiters();
-        showToast(`Allocated +${additionalCredits} credits to recruiter ${creditModalUser.name}!`);
-      }
-    } catch (err) {
-      setRecruiters(prev => prev.map(r => r.id === creditModalUser.id ? {
-        ...r,
-        allocatedCredits: (r.allocatedCredits || 0) + additionalCredits,
-        remainingBalance: (r.remainingBalance || 0) + additionalCredits
-      } : r));
-      showToast(`Allocated +${additionalCredits} credits to recruiter ${creditModalUser.name}!`);
-    }
+    } catch (err) {}
+
+    showToast(`Allocated +${additionalCredits} credits to recruiter ${creditModalUser.name}!`);
     setCreditModalUser(null);
   };
 

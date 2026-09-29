@@ -15,7 +15,7 @@ import {
   UserCheck
 } from 'lucide-react';
 import { AuditLog } from '../../types/clyptus.types';
-import { INITIAL_AUDIT_LOGS } from '../../store/clyptus.store';
+import { INITIAL_AUDIT_LOGS, getStoreAuditLogs } from '../../store/clyptus.store';
 
 interface ContextType {
   showToast: (msg: string) => void;
@@ -34,9 +34,21 @@ const ADMIN_DIMENSION_FILTERS = [
 
 export const OrgAdminAuditLogs: React.FC = () => {
   const { showToast } = useOutletContext<ContextType>();
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(getStoreAuditLogs());
   const [selectedDimension, setSelectedDimension] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  React.useEffect(() => {
+    const handleSync = () => {
+      setAuditLogs(getStoreAuditLogs());
+    };
+    window.addEventListener('clyptus_store_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('clyptus_store_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
 
   // Filtered audit records for Admin
   const filteredLogs = auditLogs.filter((log) => {

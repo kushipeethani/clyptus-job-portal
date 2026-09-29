@@ -13,7 +13,7 @@ import {
   KeyRound 
 } from 'lucide-react';
 import { AuditLog } from '../../types/clyptus.types';
-import { INITIAL_AUDIT_LOGS } from '../../store/clyptus.store';
+import { INITIAL_AUDIT_LOGS, getStoreAuditLogs } from '../../store/clyptus.store';
 
 interface ContextType {
   showToast?: (msg: string) => void;
@@ -32,9 +32,21 @@ const RECRUITER_DIMENSION_FILTERS = [
 export const RecruiterAuditLogs: React.FC = () => {
   const context = useOutletContext<ContextType>();
   const showToast = context?.showToast;
-  const [auditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(getStoreAuditLogs());
   const [selectedDimension, setSelectedDimension] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  React.useEffect(() => {
+    const handleSync = () => {
+      setAuditLogs(getStoreAuditLogs());
+    };
+    window.addEventListener('clyptus_store_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('clyptus_store_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
 
   // Filter logs related to recruiter's own actions & assigned recruitment work
   const recruiterLogs = auditLogs.filter((log) => {

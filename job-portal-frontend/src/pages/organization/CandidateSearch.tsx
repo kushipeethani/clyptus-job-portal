@@ -13,6 +13,7 @@ import {
   Briefcase 
 } from 'lucide-react';
 import { OrgRole } from '../../types/organization.types';
+import { logAction } from '../../store/clyptus.store';
 
 interface ContextType {
   currentRole: OrgRole;
@@ -58,7 +59,7 @@ const SEARCH_CANDIDATES = [
 ];
 
 export const CandidateSearch: React.FC = () => {
-  const { tokensBalance, setTokensBalance, showToast } = useOutletContext<ContextType>();
+  const { currentRole, tokensBalance, setTokensBalance, showToast } = useOutletContext<ContextType>();
   const [candidatesList, setCandidatesList] = useState(SEARCH_CANDIDATES);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -71,6 +72,17 @@ export const CandidateSearch: React.FC = () => {
     setCandidatesList((prev) =>
       prev.map((c) => (c.id === id ? { ...c, unlocked: true } : c))
     );
+
+    logAction(
+      (currentRole as string) === 'SUPER_ADMIN' || (currentRole as string) === 'OWNER' ? 'Organization Super Admin' : 'Marcus Vance (Organization Admin)',
+      (currentRole as string) || 'ORGANIZATION_ADMIN',
+      'PROFILE_VIEWED',
+      'CandidateProfile',
+      id,
+      'CANDIDATE',
+      `Unlocked full candidate profile & resume for ${name}. Deducted 10 tokens.`
+    );
+
     showToast(`Unlocked full candidate profile for ${name}! 10 tokens deducted.`);
   };
 
