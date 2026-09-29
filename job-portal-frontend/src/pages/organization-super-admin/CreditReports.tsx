@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Coins, Eye, Download, PlusCircle, CheckCircle2, Users } from 'lucide-react';
 import { OrganizationCreditAccount, CreditTransaction, RecruiterUser } from '../../types/clyptus.types';
-import { INITIAL_RECRUITERS, INITIAL_TRANSACTIONS } from '../../store/clyptus.store';
+import { getStoreCreditAccount, getStoreRecruiters, getStoreCreditTransactions, allocateCreditsToRecruiter } from '../../store/clyptus.store';
 
 interface ContextType {
   creditAccount: OrganizationCreditAccount;
@@ -12,89 +12,47 @@ interface ContextType {
 
 export const CreditReports: React.FC = () => {
   const { creditAccount, setCreditAccount, showToast } = useOutletContext<ContextType>();
-  const [recruiters, setRecruiters] = useState<RecruiterUser[]>(INITIAL_RECRUITERS);
-  const [transactions, setTransactions] = useState<CreditTransaction[]>(INITIAL_TRANSACTIONS);
+  const [recruiters, setRecruiters] = useState<RecruiterUser[]>(getStoreRecruiters());
+  const [transactions, setTransactions] = useState<CreditTransaction[]>(getStoreCreditTransactions());
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Credit Allocation State
   const [selectedTarget, setSelectedTarget] = useState<string>('ALL');
   const [allocationAmount, setAllocationAmount] = useState<number>(200);
 
-  const fetchCreditData = async () => {
-    try {
-      setIsLoading(true);
-      const [accRes, txRes, recRes] = await Promise.all([
-        fetch('http://localhost:5000/api/v1/credits/account'),
-        fetch('http://localhost:5000/api/v1/credits/transactions'),
-        fetch('http://localhost:5000/api/v1/recruiters')
-      ]);
-
-      const accJson = await accRes.json();
-      const txJson = await txRes.json();
-      const recJson = await recRes.json();
-
-      if (accJson.success && accJson.data?.account) {
-        setCreditAccount(accJson.data.account);
-      }
-      if (txJson.success && txJson.data) {
-        setTransactions(txJson.data);
-      }
-      if (recJson.success && recJson.data) {
-        setRecruiters(recJson.data);
-      }
-    } catch (err) {
-      console.warn('Backend REST API connection offline, utilizing local state.');
-    } finally {
-      setIsLoading(false);
-    }
+  const fetchCreditData = () => {
+    setCreditAccount(getStoreCreditAccount());
+    setRecruiters(getStoreRecruiters());
+    setTransactions(getStoreCreditTransactions());
   };
 
   useEffect(() => {
     fetchCreditData();
+    const handleSync = () => fetchCreditData();
+    window.addEventListener('clyptus_store_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('clyptus_store_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, []);
 
   const handleAllocateCredits = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (selectedTarget === 'ALL') {
-      // Allocate to ALL recruiters sequentially
-      for (const rec of recruiters) {
-        try {
-          await fetch('http://localhost:5000/api/v1/credits/allocate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              targetRecruiterId: rec.id,
-              credits: allocationAmount
-            })
-          });
-        } catch (err) {
-          // Fallback
-        }
-      }
+      recruiters.forEach(rec => {
+        allocateCreditsToRecruiter(rec.id, allocationAmount, 'Organization Admin');
+      });
       fetchCreditData();
       showToast(`Batch allocated +${allocationAmount} credits to ALL recruiters (${recruiters.length} recruiters)!`);
     } else {
       const targetRecruiter = recruiters.find((r) => r.id === selectedTarget);
       if (!targetRecruiter) return;
 
-      try {
-        const res = await fetch('http://localhost:5000/api/v1/credits/allocate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            targetRecruiterId: targetRecruiter.id,
-            credits: allocationAmount
-          })
-        });
-        const json = await res.json();
-        if (json.success) {
-          fetchCreditData();
-          showToast(`Allocated +${allocationAmount} credits to ${targetRecruiter.name}!`);
-        }
-      } catch (err) {
-        showToast(`Allocated +${allocationAmount} credits to ${targetRecruiter.name}!`);
-      }
+      allocateCreditsToRecruiter(targetRecruiter.id, allocationAmount, 'Organization Admin');
+      fetchCreditData();
+      showToast(`Allocated +${allocationAmount} credits to ${targetRecruiter.name}!`);
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { 
   Calendar, 
@@ -20,7 +20,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { Interview, InterviewStatus } from '../../types/clyptus.types';
-import { INITIAL_INTERVIEWS, INITIAL_JOBS } from '../../store/clyptus.store';
+import { INITIAL_INTERVIEWS, INITIAL_JOBS, getStoreInterviews, logAction } from '../../store/clyptus.store';
 
 interface ContextType {
   showToast: (msg: string) => void;
@@ -28,9 +28,27 @@ interface ContextType {
 
 export const OrgSuperAdminInterviews: React.FC = () => {
   const { showToast } = useOutletContext<ContextType>();
-  const [interviews, setInterviews] = useState<Interview[]>(INITIAL_INTERVIEWS);
+  const [interviews, setInterviews] = useState<Interview[]>(() => getStoreInterviews());
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [recruiterFilter, setRecruiterFilter] = useState<string>('ALL');
+
+  const saveInterviews = (updated: Interview[]) => {
+    setInterviews(updated);
+    try {
+      localStorage.setItem('clyptus_interviews', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('clyptus_store_updated', { detail: { type: 'INTERVIEWS' } }));
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    const handleSync = () => setInterviews(getStoreInterviews());
+    window.addEventListener('clyptus_store_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('clyptus_store_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
 
   // Modals state
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
@@ -101,7 +119,19 @@ export const OrgSuperAdminInterviews: React.FC = () => {
       status: 'SCHEDULED'
     };
 
-    setInterviews([newInt, ...interviews]);
+    const updated = [newInt, ...interviews];
+    saveInterviews(updated);
+
+    logAction(
+      'Sarah Jenkins (Super Admin)',
+      'SUPER_ADMIN',
+      'INTERVIEW_SCHEDULED',
+      'InterviewSlot',
+      newInt.id,
+      'INTERVIEW',
+      `Scheduled ${scheduleForm.interviewType} interview for candidate ${scheduleForm.candidateName} on ${scheduleForm.date} at ${scheduleForm.time}.`
+    );
+
     setIsScheduleModalOpen(false);
     showToast(`Scheduled interview for ${scheduleForm.candidateName}!`);
   };
@@ -110,19 +140,28 @@ export const OrgSuperAdminInterviews: React.FC = () => {
     e.preventDefault();
     if (!rescheduleInterview) return;
 
-    setInterviews((prev) =>
-      prev.map((i) =>
-        i.id === rescheduleInterview.id
-          ? {
-              ...i,
-              date: rescheduleForm.date,
-              time: rescheduleForm.time,
-              meetingLink: rescheduleForm.meetingLink || i.meetingLink,
-              notes: rescheduleForm.notes || i.notes,
-              status: 'RESCHEDULED'
-            }
-          : i
-      )
+    const updated = interviews.map((i) =>
+      i.id === rescheduleInterview.id
+        ? {
+            ...i,
+            date: rescheduleForm.date,
+            time: rescheduleForm.time,
+            meetingLink: rescheduleForm.meetingLink || i.meetingLink,
+            notes: rescheduleForm.notes || i.notes,
+            status: 'RESCHEDULED' as InterviewStatus
+          }
+        : i
+    );
+    saveInterviews(updated);
+
+    logAction(
+      'Sarah Jenkins (Super Admin)',
+      'SUPER_ADMIN',
+      'INTERVIEW_RESCHEDULED',
+      'InterviewSlot',
+      rescheduleInterview.id,
+      'INTERVIEW',
+      `Rescheduled interview for candidate ${rescheduleInterview.candidateName} to ${rescheduleForm.date} at ${rescheduleForm.time}.`
     );
 
     showToast(`Rescheduled interview for ${rescheduleInterview.candidateName}!`);
@@ -133,16 +172,25 @@ export const OrgSuperAdminInterviews: React.FC = () => {
     e.preventDefault();
     if (!assignModalInterview) return;
 
-    setInterviews((prev) =>
-      prev.map((i) =>
-        i.id === assignModalInterview.id
-          ? {
-              ...i,
-              interviewerName: assignForm.interviewerName,
-              interviewerRole: assignForm.interviewerRole
-            }
-          : i
-      )
+    const updated = interviews.map((i) =>
+      i.id === assignModalInterview.id
+        ? {
+            ...i,
+            interviewerName: assignForm.interviewerName,
+            interviewerRole: assignForm.interviewerRole
+          }
+        : i
+    );
+    saveInterviews(updated);
+
+    logAction(
+      'Sarah Jenkins (Super Admin)',
+      'SUPER_ADMIN',
+      'INTERVIEWER_ASSIGNED',
+      'InterviewSlot',
+      assignModalInterview.id,
+      'INTERVIEW',
+      `Assigned interviewer ${assignForm.interviewerName} (${assignForm.interviewerRole}) to candidate ${assignModalInterview.candidateName}.`
     );
 
     showToast(`Assigned interviewer ${assignForm.interviewerName} to ${assignModalInterview.candidateName}!`);
@@ -151,9 +199,19 @@ export const OrgSuperAdminInterviews: React.FC = () => {
 
   const handleCancelInterview = (id: string, name: string) => {
     if (confirm(`Are you sure you want to cancel the interview for candidate "${name}"?`)) {
-      setInterviews((prev) =>
-        prev.map((i) => (i.id === id ? { ...i, status: 'CANCELLED' } : i))
+      const updated = interviews.map((i) => (i.id === id ? { ...i, status: 'CANCELLED' as InterviewStatus } : i));
+      saveInterviews(updated);
+
+      logAction(
+        'Sarah Jenkins (Super Admin)',
+        'SUPER_ADMIN',
+        'INTERVIEW_CANCELLED',
+        'InterviewSlot',
+        id,
+        'INTERVIEW',
+        `Cancelled interview for candidate ${name} (${id}).`
       );
+
       showToast(`Cancelled interview for ${name}.`);
     }
   };
@@ -254,37 +312,37 @@ export const OrgSuperAdminInterviews: React.FC = () => {
       </div>
 
       {/* Interview Feature Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {filteredInterviews.map((item) => (
           <div
             key={item.id}
-            className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+            className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-xs hover:shadow-sm transition-all flex flex-col justify-between space-y-2.5"
           >
-            <div className="space-y-3">
+            <div className="space-y-2">
               {/* Header Badge Row */}
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center justify-between gap-1.5">
                 {getStatusBadge(item.status)}
-                <span className="text-[11px] font-bold text-slate-500">
+                <span className="text-[10px] font-bold text-slate-500 truncate">
                   Round: <strong className="text-slate-800">{item.interviewType.replace(/_/g, ' ')}</strong>
                 </span>
               </div>
 
               {/* Candidate & Job Info */}
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="font-extrabold text-slate-900 text-base">{item.candidateName}</h3>
-                  <p className="text-xs font-semibold text-brand-blue-600 mt-0.5">{item.jobTitle}</p>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-extrabold text-slate-900 text-sm truncate">{item.candidateName}</h3>
+                  <p className="text-[11px] font-semibold text-brand-blue-600 truncate mt-0.5">{item.jobTitle}</p>
                 </div>
 
-                <div className="text-right text-[11px] text-slate-500">
+                <div className="text-right text-[10px] text-slate-500 shrink-0">
                   <span className="block font-semibold text-slate-700">Recruiter: {item.recruiterName}</span>
                 </div>
               </div>
 
               {/* Assigned Interviewer Card */}
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1.5 text-xs">
+              <div className="p-2 bg-slate-50 rounded-xl border border-slate-100 space-y-1 text-[11px]">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-extrabold uppercase text-slate-400">Assigned Interviewer</span>
+                  <span className="text-[9px] font-extrabold uppercase text-slate-400">Assigned Interviewer</span>
                   <button
                     onClick={() => {
                       setAssignModalInterview(item);
@@ -293,71 +351,71 @@ export const OrgSuperAdminInterviews: React.FC = () => {
                         interviewerRole: item.interviewerRole || 'Senior Engineering Leader'
                       });
                     }}
-                    className="text-[10px] font-bold text-indigo-600 hover:underline flex items-center gap-1"
+                    className="text-[9px] font-bold text-indigo-600 hover:underline flex items-center gap-0.5"
                   >
-                    <UserCheck className="w-3 h-3" /> Reassign Interviewer
+                    <UserCheck className="w-2.5 h-2.5" /> Reassign
                   </button>
                 </div>
 
-                <div className="font-bold text-slate-800">
-                  {item.interviewerName ? `${item.interviewerName} (${item.interviewerRole || 'Interviewer'})` : 'Unassigned Interviewer'}
+                <div className="font-bold text-slate-800 truncate">
+                  {item.interviewerName ? `${item.interviewerName} (${item.interviewerRole || 'Interviewer'})` : 'Unassigned'}
                 </div>
               </div>
 
               {/* Date, Time & Meeting Link */}
-              <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-indigo-50/40 p-3 rounded-2xl border border-indigo-100">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                  <span className="font-bold text-slate-900">{item.date}</span>
+              <div className="grid grid-cols-2 gap-1.5 text-[11px] text-slate-600 bg-indigo-50/40 p-2 rounded-xl border border-indigo-100">
+                <div className="flex items-center gap-1 min-w-0">
+                  <Calendar className="w-3 h-3 text-indigo-600 shrink-0" />
+                  <span className="font-bold text-slate-900 truncate">{item.date}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                  <span className="font-bold text-slate-900">{item.time}</span>
+                <div className="flex items-center gap-1 min-w-0">
+                  <Clock className="w-3 h-3 text-indigo-600 shrink-0" />
+                  <span className="font-bold text-slate-900 truncate">{item.time}</span>
                 </div>
               </div>
 
               {item.notes && (
-                <p className="text-xs text-slate-500 italic bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <p className="text-[11px] text-slate-500 italic bg-slate-50 p-2 rounded-lg border border-slate-100 line-clamp-1">
                   "{item.notes}"
                 </p>
               )}
 
               {/* Feedback Summary Section */}
               {item.feedbackNotes && (
-                <div className="p-3 bg-emerald-50/60 rounded-2xl border border-emerald-200/80 space-y-1 text-xs">
+                <div className="p-2 bg-emerald-50/60 rounded-xl border border-emerald-200/80 space-y-0.5 text-[11px]">
                   <div className="flex items-center justify-between text-emerald-900 font-bold">
-                    <span className="flex items-center gap-1">
-                      <MessageSquare className="w-3.5 h-3.5 text-emerald-600" /> Submitted Feedback
+                    <span className="flex items-center gap-1 text-[10px]">
+                      <MessageSquare className="w-3 h-3 text-emerald-600" /> Feedback
                     </span>
                     {item.feedbackRating && (
-                      <span className="flex items-center gap-1 text-amber-600 font-extrabold text-xs">
-                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /> {item.feedbackRating} / 5
+                      <span className="flex items-center gap-0.5 text-amber-600 font-extrabold text-[10px]">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {item.feedbackRating}/5
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-700 line-clamp-2">{item.feedbackNotes}</p>
+                  <p className="text-[10px] text-slate-700 line-clamp-1">{item.feedbackNotes}</p>
                 </div>
               )}
             </div>
 
             {/* Action Bar */}
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5 text-[11px]">
               <a
                 href={item.meetingLink}
                 target="_blank"
                 rel="noreferrer"
-                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-xs flex items-center gap-1"
+                className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-xs flex items-center gap-1 text-[10px]"
               >
-                <Video className="w-3.5 h-3.5" /> Join Link <ExternalLink className="w-3 h-3 ml-0.5" />
+                <Video className="w-3 h-3" /> Join <ExternalLink className="w-2.5 h-2.5" />
               </a>
 
               <div className="flex items-center gap-1">
                 {item.feedbackNotes && (
                   <button
                     onClick={() => setFeedbackModalInterview(item)}
-                    className="px-2.5 py-1.5 bg-emerald-50 text-emerald-700 font-bold rounded-xl border border-emerald-200 hover:bg-emerald-100"
+                    className="px-2 py-1 bg-emerald-50 text-emerald-700 font-bold rounded-lg border border-emerald-200 hover:bg-emerald-100 text-[10px]"
                   >
-                    View Feedback
+                    Feedback
                   </button>
                 )}
 
@@ -371,18 +429,18 @@ export const OrgSuperAdminInterviews: React.FC = () => {
                       notes: item.notes
                     });
                   }}
-                  className="px-2.5 py-1.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 border border-slate-200 flex items-center gap-1"
+                  className="px-2 py-1 bg-slate-100 text-slate-700 font-bold rounded-lg hover:bg-slate-200 border border-slate-200 flex items-center gap-1 text-[10px]"
                 >
-                  <Edit3 className="w-3.5 h-3.5 text-slate-500" /> Reschedule
+                  <Edit3 className="w-3 h-3 text-slate-500" /> Reschedule
                 </button>
 
                 {item.status !== 'CANCELLED' && (
                   <button
                     onClick={() => handleCancelInterview(item.id, item.candidateName)}
-                    className="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl border border-red-200"
+                    className="p-1 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg border border-red-200"
                     title="Cancel Interview"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-3 h-3" />
                   </button>
                 )}
               </div>

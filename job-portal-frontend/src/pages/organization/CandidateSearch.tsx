@@ -10,10 +10,11 @@ import {
   CheckCircle2, 
   Lock, 
   Eye, 
+  Download,
   Briefcase 
 } from 'lucide-react';
 import { OrgRole } from '../../types/organization.types';
-import { logAction } from '../../store/clyptus.store';
+import { logAction, getStoreCreditAccount, saveStoreCreditAccount, getStoreCreditTransactions, saveStoreCreditTransactions } from '../../store/clyptus.store';
 
 interface ContextType {
   currentRole: OrgRole;
@@ -24,37 +25,37 @@ interface ContextType {
 
 const SEARCH_CANDIDATES = [
   {
-    id: 'db_cand_1',
-    name: 'David K. Miller',
-    headline: 'Senior Backend Architect (Node.js, NestJS, Redis, PostgreSQL)',
-    location: 'San Francisco, CA',
-    experienceYears: 8,
-    skills: ['Node.js', 'NestJS', 'PostgreSQL', 'Redis', 'BullMQ', 'Docker'],
-    unlocked: true,
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
-    summary: '8+ years architecting high-concurrency microservices and real-time backend queues. Expert in NestJS modular monolith design.'
+    id: 'cand_101',
+    name: 'Aarav Sharma',
+    headline: 'Senior Python & FastAPI Engineer',
+    location: 'Hyderabad',
+    experienceYears: 4,
+    skills: ['Python', 'FastAPI', 'PostgreSQL', 'Docker', 'Redis'],
+    unlocked: false,
+    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=120&q=80',
+    summary: '4+ years building high-performance REST microservices with FastAPI, PostgreSQL, and Redis.'
   },
   {
-    id: 'db_cand_2',
-    name: 'Jessica Zhang',
-    headline: 'Frontend Engineer (React 18, TypeScript, Tailwind CSS)',
-    location: 'Remote / New York',
+    id: 'cand_102',
+    name: 'Ananya Patel',
+    headline: 'Full Stack React & Node.js Specialist',
+    location: 'Bengaluru',
+    experienceYears: 3,
+    skills: ['React', 'TypeScript', 'Vite', 'Node.js', 'Tailwind CSS'],
+    unlocked: false,
+    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&q=80',
+    summary: 'Specialized in building responsive React & TypeScript frontend applications and state management.'
+  },
+  {
+    id: 'cand_103',
+    name: 'Vikramaditya Rao',
+    headline: 'Backend Python & Cloud Engineer',
+    location: 'Mumbai',
     experienceYears: 5,
-    skills: ['React', 'TypeScript', 'Tailwind CSS', 'Vite', 'TanStack Query', 'Zustand'],
+    skills: ['Python', 'Django', 'FastAPI', 'AWS', 'PostgreSQL', 'Redis'],
     unlocked: false,
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
-    summary: 'Specialized in ultra-responsive UI component libraries, glassmorphism design, and state architecture.'
-  },
-  {
-    id: 'db_cand_3',
-    name: 'Michael O\'Connor',
-    headline: 'AI / Machine Learning Engineer (Gemini API, Python, PyTorch)',
-    location: 'Austin, TX',
-    experienceYears: 6,
-    skills: ['Python', 'Gemini API', 'PyTorch', 'OpenSearch', 'Vector Indexing'],
-    unlocked: false,
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80',
-    summary: 'Focuses on integrating large language models into enterprise SaaS products for automated parsing.'
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
+    summary: '5+ years architecting scalable cloud backends, AWS deployment pipelines, and database optimization.'
   }
 ];
 
@@ -62,13 +63,44 @@ export const CandidateSearch: React.FC = () => {
   const { currentRole, tokensBalance, setTokensBalance, showToast } = useOutletContext<ContextType>();
   const [candidatesList, setCandidatesList] = useState(SEARCH_CANDIDATES);
   const [searchQuery, setSearchQuery] = useState('');
+  const [expFilter, setExpFilter] = useState<'ALL' | '3+' | '5+' | '8+'>('ALL');
+  const [unlockFilter, setUnlockFilter] = useState<'ALL' | 'UNLOCKED' | 'LOCKED'>('ALL');
+
+  const [downloadedResumeIds, setDownloadedResumeIds] = useState<string[]>([]);
+
+  // Filter candidates dynamically based on search query, experience, and unlock state
+  const filteredCandidates = candidatesList.filter((cand) => {
+    const query = searchQuery.toLowerCase().trim();
+    const matchesQuery = !query || 
+      cand.name.toLowerCase().includes(query) ||
+      cand.headline.toLowerCase().includes(query) ||
+      cand.location.toLowerCase().includes(query) ||
+      cand.skills.some(s => s.toLowerCase().includes(query)) ||
+      cand.summary.toLowerCase().includes(query);
+
+    const matchesExp = expFilter === 'ALL' || 
+      (expFilter === '3+' && cand.experienceYears >= 3) ||
+      (expFilter === '5+' && cand.experienceYears >= 5) ||
+      (expFilter === '8+' && cand.experienceYears >= 8);
+
+    const matchesUnlocked = unlockFilter === 'ALL' || 
+      (unlockFilter === 'UNLOCKED' && cand.unlocked) ||
+      (unlockFilter === 'LOCKED' && !cand.unlocked);
+
+    return matchesQuery && matchesExp && matchesUnlocked;
+  });
 
   const handleUnlockProfile = (id: string, name: string) => {
-    if (tokensBalance < 10) {
-      alert('Insufficient tokens! Super Admin / Admin must allocate or purchase more tokens.');
+    const acc = getStoreCreditAccount();
+    if (acc.balance < 1) {
+      alert('Insufficient credits! Super Admin / Admin must allocate or purchase more credits.');
       return;
     }
-    setTokensBalance((prev) => prev - 10);
+
+    const newAcc = { ...acc, balance: acc.balance - 1, totalConsumed: (acc.totalConsumed || 0) + 1 };
+    saveStoreCreditAccount(newAcc);
+    setTokensBalance(newAcc.balance);
+
     setCandidatesList((prev) =>
       prev.map((c) => (c.id === id ? { ...c, unlocked: true } : c))
     );
@@ -79,11 +111,37 @@ export const CandidateSearch: React.FC = () => {
       'PROFILE_VIEWED',
       'CandidateProfile',
       id,
-      'CANDIDATE',
-      `Unlocked full candidate profile & resume for ${name}. Deducted 10 tokens.`
+      'TOKEN',
+      `Viewed full candidate profile for ${name}. Deducted 1 credit. Remaining org balance: ${newAcc.balance} credits.`
     );
 
-    showToast(`Unlocked full candidate profile for ${name}! 10 tokens deducted.`);
+    showToast(`Unlocked full candidate profile for ${name}! (-1 Credit)`);
+  };
+
+  const handleDownloadResume = (id: string, name: string) => {
+    const acc = getStoreCreditAccount();
+    if (acc.balance < 1) {
+      alert('Insufficient credits! Super Admin / Admin must allocate or purchase more credits.');
+      return;
+    }
+
+    const newAcc = { ...acc, balance: acc.balance - 1, totalConsumed: (acc.totalConsumed || 0) + 1 };
+    saveStoreCreditAccount(newAcc);
+    setTokensBalance(newAcc.balance);
+
+    setDownloadedResumeIds((prev) => [...prev, id]);
+
+    logAction(
+      (currentRole as string) === 'SUPER_ADMIN' || (currentRole as string) === 'OWNER' ? 'Organization Super Admin' : 'Marcus Vance (Organization Admin)',
+      (currentRole as string) || 'ORGANIZATION_ADMIN',
+      'RESUME_DOWNLOADED',
+      'ResumeFile',
+      id,
+      'TOKEN',
+      `Downloaded candidate resume for ${name}. Deducted 1 credit. Remaining org balance: ${newAcc.balance} credits.`
+    );
+
+    showToast(`Downloaded candidate resume for ${name}! (-1 Credit)`);
   };
 
   return (
@@ -92,37 +150,79 @@ export const CandidateSearch: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">AI Candidate Database Search</h2>
-          <p className="text-xs text-slate-500">Search 50,000+ verified candidates across tech, product, and AI roles</p>
+          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">AI Candidate Search</h2>
+          <p className="text-xs text-slate-500">Search verified candidate profiles, filter by experience & skills, unlock profiles, and download resumes</p>
         </div>
 
         <div className="flex items-center gap-2 bg-orange-50 px-3.5 py-1.5 rounded-xl border border-orange-200 text-xs text-orange-900">
           <Coins className="w-4 h-4 text-brand-orange-500" />
-          <span>Profile Unlock Cost: <strong>10 Tokens</strong></span>
+          <span>Quota Rules: <strong>1 Credit / View Profile</strong> • <strong>1 Credit / Resume Download</strong></span>
         </div>
       </div>
 
-      {/* Search Input Bar */}
-      <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center gap-3">
-        <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-          <input
-            type="text"
-            placeholder="Search by job title, skills (e.g. React, NestJS, Gemini API)..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-blue-500 focus:outline-none"
-          />
+      {/* Search Bar & Filter Controls */}
+      <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="relative flex-1 w-full">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+            <input
+              type="text"
+              placeholder="Search candidate name, job title, skills (React, Node.js, Python)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-300 text-xs font-medium focus:ring-2 focus:ring-brand-blue-500 focus:outline-none"
+            />
+          </div>
+          
+          <button 
+            onClick={() => setSearchQuery(searchQuery)}
+            className="w-full sm:w-auto px-5 py-2.5 bg-brand-blue-600 hover:bg-brand-blue-700 text-white text-xs font-bold rounded-2xl shadow-sm flex items-center justify-center gap-1.5 shrink-0"
+          >
+            <Search className="w-4 h-4" /> Search Candidates
+          </button>
         </div>
-        <button className="w-full sm:w-auto px-5 py-2.5 bg-brand-blue-600 hover:bg-brand-blue-700 text-white text-xs font-bold rounded-2xl shadow-sm flex items-center justify-center gap-1.5">
-          <Search className="w-4 h-4" /> Search Database
-        </button>
+
+        {/* Filter Controls Bar */}
+        <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-bold text-slate-700 flex items-center gap-1">
+              <Filter className="w-3.5 h-3.5 text-brand-blue-600" /> Filters:
+            </span>
+
+            {/* Experience Filter */}
+            <select
+              value={expFilter}
+              onChange={(e) => setExpFilter(e.target.value as any)}
+              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-none"
+            >
+              <option value="ALL">All Experience Levels</option>
+              <option value="3+">3+ Years Exp</option>
+              <option value="5+">5+ Years Exp</option>
+              <option value="8+">8+ Years Exp</option>
+            </select>
+
+            {/* Profile State Filter */}
+            <select
+              value={unlockFilter}
+              onChange={(e) => setUnlockFilter(e.target.value as any)}
+              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-none"
+            >
+              <option value="ALL">All Profiles</option>
+              <option value="UNLOCKED">Unlocked Profiles</option>
+              <option value="LOCKED">Locked Profiles</option>
+            </select>
+          </div>
+
+          <span className="text-xs font-extrabold text-slate-600">
+            Showing <strong className="text-brand-blue-700">{filteredCandidates.length}</strong> of {candidatesList.length} candidates
+          </span>
+        </div>
       </div>
 
       {/* Candidate Cards Grid */}
       <div className="space-y-4">
-        {candidatesList.map((cand) => (
-          <div key={cand.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+        {filteredCandidates.map((cand) => (
+          <div key={cand.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4 hover:border-brand-blue-300 transition-all">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               
               <div className="flex items-center gap-4">
@@ -147,17 +247,36 @@ export const CandidateSearch: React.FC = () => {
                 </div>
               </div>
 
-              <div>
+              <div className="flex flex-wrap items-center gap-2">
                 {cand.unlocked ? (
-                  <button className="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl flex items-center gap-1.5">
-                    <Eye className="w-4 h-4" /> View Full Resume & Contact
-                  </button>
+                  <span className="px-3 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-1">
+                    <CheckCircle2 className="w-4 h-4" /> Profile Unlocked
+                  </span>
                 ) : (
                   <button
                     onClick={() => handleUnlockProfile(cand.id, cand.name)}
                     className="px-4 py-2 text-xs font-bold text-white bg-brand-orange-500 hover:bg-brand-orange-600 rounded-xl shadow-xs flex items-center gap-1.5"
                   >
-                    <Lock className="w-4 h-4" /> Unlock Profile (10 Tokens)
+                    <Lock className="w-4 h-4" /> View Profile (1 Credit)
+                  </button>
+                )}
+
+                {downloadedResumeIds.includes(cand.id) ? (
+                  <a
+                    href="https://clyptus-resumes-s3.bucket/sample_resume.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => showToast(`Opening downloaded resume for ${cand.name}...`)}
+                    className="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 border border-emerald-600 rounded-xl flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" /> Download Resume (Unlocked)
+                  </a>
+                ) : (
+                  <button
+                    onClick={() => handleDownloadResume(cand.id, cand.name)}
+                    className="px-4 py-2 text-xs font-bold text-brand-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl flex items-center gap-1.5"
+                  >
+                    <Download className="w-4 h-4" /> Download Resume (1 Credit)
                   </button>
                 )}
               </div>
@@ -183,6 +302,14 @@ export const CandidateSearch: React.FC = () => {
 
           </div>
         ))}
+
+        {filteredCandidates.length === 0 && (
+          <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-slate-300 space-y-2">
+            <UserSearch className="w-8 h-8 text-slate-400 mx-auto" />
+            <h4 className="font-bold text-slate-800 text-sm">No candidates match your search filter</h4>
+            <p className="text-xs text-slate-500">Try adjusting your search terms or experience filters.</p>
+          </div>
+        )}
       </div>
 
     </div>

@@ -17,7 +17,8 @@ import {
   BarChart3,
   ShieldCheck,
   Bell,
-  User
+  User,
+  Star
 } from 'lucide-react';
 
 export const RecruiterSidebar: React.FC = () => {
@@ -27,6 +28,7 @@ export const RecruiterSidebar: React.FC = () => {
       items: [
         { label: 'Dashboard', path: '/recruiter/dashboard', icon: LayoutDashboard },
         { label: 'My Jobs', path: '/recruiter/jobs', icon: Briefcase, badge: 'Active' },
+        { label: 'Shortlisted Candidates', path: '/recruiter/shortlisted', icon: Star, badge: 'Log', badgeColor: 'bg-purple-100 text-purple-800' },
         { label: 'Candidate Search', path: '/recruiter/candidates', icon: UserSearch, badge: '1 Cr/Action', badgeColor: 'bg-orange-100 text-orange-800' },
         { label: 'Saved Candidates', path: '/recruiter/saved-candidates', icon: Bookmark },
       ]

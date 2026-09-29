@@ -13,6 +13,7 @@ import { OrgSuperAdminInterviews } from '../pages/organization-super-admin/Inter
 import { Settings } from '../pages/organization/Settings';
 import { Jobs } from '../pages/organization/Jobs';
 import { CandidateSearch } from '../pages/organization/CandidateSearch';
+import { RecruiterApplications } from '../pages/recruiter/Applications';
 
 export const OrgSuperAdminRoutes: React.FC = () => {
   return (
@@ -31,7 +32,7 @@ export const OrgSuperAdminRoutes: React.FC = () => {
         <Route path="settings" element={<Settings />} />
         <Route path="jobs" element={<Jobs />} />
         <Route path="candidates" element={<CandidateSearch />} />
-        <Route path="applications" element={<Jobs />} />
+        <Route path="applications" element={<RecruiterApplications />} />
         <Route path="interviews" element={<OrgSuperAdminInterviews />} />
         <Route path="*" element={<Navigate to="dashboard" replace />} />
       </Route>

@@ -16,7 +16,7 @@ import {
   FileCheck
 } from 'lucide-react';
 import { Offer, OfferStatus } from '../../types/clyptus.types';
-import { INITIAL_OFFERS } from '../../store/clyptus.store';
+import { INITIAL_OFFERS, getStoreOffers, logAction } from '../../store/clyptus.store';
 
 interface ContextType {
   showToast: (msg: string) => void;
@@ -34,7 +34,7 @@ const ALL_OFFER_STATUSES: OfferStatus[] = [
 
 export const OrgAdminOffers: React.FC = () => {
   const { showToast } = useOutletContext<ContextType>();
-  const [offers, setOffers] = useState<Offer[]>(INITIAL_OFFERS);
+  const [offers, setOffers] = useState<Offer[]>(() => getStoreOffers());
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -53,25 +53,35 @@ export const OrgAdminOffers: React.FC = () => {
     status: 'PENDING_APPROVAL' as OfferStatus
   });
 
-  const fetchOffers = async () => {
+  const fetchOffers = () => {
+    setOffers(getStoreOffers());
+  };
+
+  const saveOffers = (updated: Offer[]) => {
+    setOffers(updated);
     try {
-      const res = await fetch('http://localhost:5000/api/v1/offers');
-      const json = await res.json();
-      if (json.success && json.data && json.data.length > 0) {
-        setOffers(json.data);
-      }
-    } catch (err) {
-      console.warn('Backend offer API offline.');
-    }
+      localStorage.setItem('clyptus_offers', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('clyptus_store_updated', { detail: { type: 'OFFERS' } }));
+    } catch (e) {}
   };
 
   useEffect(() => {
     fetchOffers();
+    const handleSync = () => fetchOffers();
+    window.addEventListener('clyptus_store_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('clyptus_store_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, []);
 
   const handleStatusTransition = async (id: string, newStatus: OfferStatus, note?: string) => {
+    const targetOffer = offers.find(o => o.id === id);
+    const candidateName = targetOffer?.candidateName || id;
+
     try {
-      const res = await fetch(`http://localhost:5000/api/v1/offers/${id}/status`, {
+      await fetch(`http://localhost:5000/api/v1/offers/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -80,19 +90,20 @@ export const OrgAdminOffers: React.FC = () => {
           note: note || `Admin transitioned status to ${newStatus}`
         })
       });
-      const json = await res.json();
-      if (json.success) {
-        fetchOffers();
-      } else {
-        setOffers((prev) =>
-          prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o))
-        );
-      }
-    } catch (err) {
-      setOffers((prev) =>
-        prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o))
-      );
-    }
+    } catch (err) {}
+
+    const updated = offers.map((o) => (o.id === id ? { ...o, status: newStatus } : o));
+    saveOffers(updated);
+
+    logAction(
+      'Marcus Vance (Admin)',
+      'ORGANIZATION_ADMIN',
+      'OFFER_STATUS_UPDATED',
+      'OfferLetter',
+      id,
+      'OFFER',
+      `Updated offer status for ${candidateName} (${id}) to ${newStatus}.`
+    );
 
     showToast(`Updated offer status to ${newStatus}`);
   };
@@ -106,55 +117,46 @@ export const OrgAdminOffers: React.FC = () => {
       role: createForm.role,
       annualCTC: createForm.annualCTC,
       joiningDate: createForm.joiningDate,
-      createdBy: createForm.createdBy,
+      createdBy: createForm.createdBy || 'Marcus Vance (Admin)',
       status: createForm.status
     };
 
     try {
-      const res = await fetch('http://localhost:5000/api/v1/offers', {
+      await fetch('http://localhost:5000/api/v1/offers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      const json = await res.json();
-      if (json.success) {
-        fetchOffers();
-      } else {
-        const fallbackObj: Offer = {
-          id: `off_${Date.now()}`,
-          organizationId: 'org_abc_tech',
-          jobId: 'job_201',
-          jobTitle: createForm.role,
-          candidateId: `cand_${Date.now()}`,
-          candidateName: createForm.candidateName,
-          candidateEmail: createForm.candidateEmail,
-          role: createForm.role,
-          annualCTC: createForm.annualCTC,
-          joiningDate: createForm.joiningDate,
-          status: createForm.status,
-          createdBy: createForm.createdBy,
-          createdAt: new Date().toISOString().split('T')[0]
-        };
-        setOffers([fallbackObj, ...offers]);
-      }
-    } catch (err) {
-      const fallbackObj: Offer = {
-        id: `off_${Date.now()}`,
-        organizationId: 'org_abc_tech',
-        jobId: 'job_201',
-        jobTitle: createForm.role,
-        candidateId: `cand_${Date.now()}`,
-        candidateName: createForm.candidateName,
-        candidateEmail: createForm.candidateEmail,
-        role: createForm.role,
-        annualCTC: createForm.annualCTC,
-        joiningDate: createForm.joiningDate,
-        status: createForm.status,
-        createdBy: createForm.createdBy,
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-      setOffers([fallbackObj, ...offers]);
-    }
+    } catch (err) {}
+
+    const newOffer: Offer = {
+      id: `off_${Date.now()}`,
+      organizationId: 'org_abc_tech',
+      jobId: 'job_201',
+      jobTitle: createForm.role,
+      candidateId: `cand_${Date.now()}`,
+      candidateName: createForm.candidateName,
+      candidateEmail: createForm.candidateEmail,
+      role: createForm.role,
+      annualCTC: createForm.annualCTC,
+      joiningDate: createForm.joiningDate,
+      status: createForm.status,
+      createdBy: createForm.createdBy || 'Marcus Vance (Admin)',
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+
+    const updated = [newOffer, ...offers];
+    saveOffers(updated);
+
+    logAction(
+      'Marcus Vance (Admin)',
+      'ORGANIZATION_ADMIN',
+      'OFFER_CREATED',
+      'OfferLetter',
+      newOffer.id,
+      'OFFER',
+      `Created new offer for candidate ${createForm.candidateName} (${createForm.candidateEmail}) as ${createForm.role} with CTC ${createForm.annualCTC}.`
+    );
 
     setIsCreateModalOpen(false);
     showToast(`Created offer letter for ${createForm.candidateName}!`);

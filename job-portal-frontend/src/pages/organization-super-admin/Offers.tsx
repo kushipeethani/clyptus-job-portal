@@ -20,7 +20,7 @@ import {
   Building2
 } from 'lucide-react';
 import { Offer, OfferStatus } from '../../types/clyptus.types';
-import { INITIAL_OFFERS } from '../../store/clyptus.store';
+import { INITIAL_OFFERS, getStoreOffers, logAction } from '../../store/clyptus.store';
 
 interface ContextType {
   showToast: (msg: string) => void;
@@ -38,11 +38,11 @@ const ALL_OFFER_STATUSES: OfferStatus[] = [
 
 export const OrgSuperAdminOffers: React.FC = () => {
   const { showToast } = useOutletContext<ContextType>();
-  const [offers, setOffers] = useState<Offer[]>(INITIAL_OFFERS);
+  const [offers, setOffers] = useState<Offer[]>(() => getStoreOffers());
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Modals state
+  // Modals
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [auditModalOffer, setAuditModalOffer] = useState<Offer | null>(null);
 
@@ -53,30 +53,39 @@ export const OrgSuperAdminOffers: React.FC = () => {
     role: 'Senior Python & FastAPI Engineer',
     annualCTC: '₹12,00,000 INR',
     joiningDate: '2026-11-15',
-    createdBy: 'Elena Rostova',
+    createdBy: 'Sarah Jenkins (Super Admin)',
     status: 'PENDING_APPROVAL' as OfferStatus
   });
 
-  // Fetch offers from backend API
-  const fetchOffers = async () => {
+  const fetchOffers = () => {
+    setOffers(getStoreOffers());
+  };
+
+  const saveOffers = (updated: Offer[]) => {
+    setOffers(updated);
     try {
-      const res = await fetch('http://localhost:5000/api/v1/offers');
-      const json = await res.json();
-      if (json.success && json.data && json.data.length > 0) {
-        setOffers(json.data);
-      }
-    } catch (err) {
-      console.warn('Backend offer API offline, utilizing state.');
-    }
+      localStorage.setItem('clyptus_offers', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('clyptus_store_updated', { detail: { type: 'OFFERS' } }));
+    } catch (e) {}
   };
 
   useEffect(() => {
     fetchOffers();
+    const handleSync = () => fetchOffers();
+    window.addEventListener('clyptus_store_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('clyptus_store_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, []);
 
   const handleStatusTransition = async (id: string, newStatus: OfferStatus, note?: string) => {
+    const targetOffer = offers.find(o => o.id === id);
+    const candidateName = targetOffer?.candidateName || id;
+
     try {
-      const res = await fetch(`http://localhost:5000/api/v1/offers/${id}/status`, {
+      await fetch(`http://localhost:5000/api/v1/offers/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -85,19 +94,20 @@ export const OrgSuperAdminOffers: React.FC = () => {
           note: note || `Status transitioned to ${newStatus}`
         })
       });
-      const json = await res.json();
-      if (json.success) {
-        fetchOffers();
-      } else {
-        setOffers((prev) =>
-          prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o))
-        );
-      }
-    } catch (err) {
-      setOffers((prev) =>
-        prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o))
-      );
-    }
+    } catch (err) {}
+
+    const updated = offers.map((o) => (o.id === id ? { ...o, status: newStatus } : o));
+    saveOffers(updated);
+
+    logAction(
+      'Sarah Jenkins (Super Admin)',
+      'SUPER_ADMIN',
+      'OFFER_STATUS_UPDATED',
+      'OfferLetter',
+      id,
+      'OFFER',
+      `Updated offer status for ${candidateName} (${id}) to ${newStatus}.`
+    );
 
     showToast(`Updated offer status to ${newStatus}`);
   };
@@ -111,55 +121,46 @@ export const OrgSuperAdminOffers: React.FC = () => {
       role: createForm.role,
       annualCTC: createForm.annualCTC,
       joiningDate: createForm.joiningDate,
-      createdBy: createForm.createdBy,
+      createdBy: createForm.createdBy || 'Sarah Jenkins (Super Admin)',
       status: createForm.status
     };
 
     try {
-      const res = await fetch('http://localhost:5000/api/v1/offers', {
+      await fetch('http://localhost:5000/api/v1/offers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOfferPayload)
       });
-      const json = await res.json();
-      if (json.success) {
-        fetchOffers();
-      } else {
-        const fallbackObj: Offer = {
-          id: `off_${Date.now()}`,
-          organizationId: 'org_abc_tech',
-          jobId: 'job_201',
-          jobTitle: createForm.role,
-          candidateId: `cand_${Date.now()}`,
-          candidateName: createForm.candidateName,
-          candidateEmail: createForm.candidateEmail,
-          role: createForm.role,
-          annualCTC: createForm.annualCTC,
-          joiningDate: createForm.joiningDate,
-          status: createForm.status,
-          createdBy: createForm.createdBy,
-          createdAt: new Date().toISOString().split('T')[0]
-        };
-        setOffers([fallbackObj, ...offers]);
-      }
-    } catch (err) {
-      const fallbackObj: Offer = {
-        id: `off_${Date.now()}`,
-        organizationId: 'org_abc_tech',
-        jobId: 'job_201',
-        jobTitle: createForm.role,
-        candidateId: `cand_${Date.now()}`,
-        candidateName: createForm.candidateName,
-        candidateEmail: createForm.candidateEmail,
-        role: createForm.role,
-        annualCTC: createForm.annualCTC,
-        joiningDate: createForm.joiningDate,
-        status: createForm.status,
-        createdBy: createForm.createdBy,
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-      setOffers([fallbackObj, ...offers]);
-    }
+    } catch (err) {}
+
+    const newOffer: Offer = {
+      id: `off_${Date.now()}`,
+      organizationId: 'org_abc_tech',
+      jobId: 'job_201',
+      jobTitle: createForm.role,
+      candidateId: `cand_${Date.now()}`,
+      candidateName: createForm.candidateName,
+      candidateEmail: createForm.candidateEmail,
+      role: createForm.role,
+      annualCTC: createForm.annualCTC,
+      joiningDate: createForm.joiningDate,
+      status: createForm.status,
+      createdBy: createForm.createdBy || 'Sarah Jenkins (Super Admin)',
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+
+    const updated = [newOffer, ...offers];
+    saveOffers(updated);
+
+    logAction(
+      'Sarah Jenkins (Super Admin)',
+      'SUPER_ADMIN',
+      'OFFER_CREATED',
+      'OfferLetter',
+      newOffer.id,
+      'OFFER',
+      `Created new offer for candidate ${createForm.candidateName} (${createForm.candidateEmail}) as ${createForm.role} with CTC ${createForm.annualCTC}.`
+    );
 
     setIsCreateModalOpen(false);
     showToast(`Created offer letter for ${createForm.candidateName}!`);
@@ -181,10 +182,10 @@ export const OrgSuperAdminOffers: React.FC = () => {
 
   // Counters
   const totalCount = offers.length;
-  const pendingCount = offers.filter((o) => o.status === 'PENDING_APPROVAL').length;
-  const sentCount = offers.filter((o) => o.status === 'SENT').length;
+  const pendingCount = offers.filter((o) => o.status === 'PENDING_APPROVAL' || o.status === 'DRAFT').length;
   const acceptedCount = offers.filter((o) => o.status === 'ACCEPTED').length;
-  const rejectedCount = offers.filter((o) => o.status === 'REJECTED' || o.status === 'WITHDRAWN' || o.status === 'EXPIRED').length;
+  const rejectedCount = offers.filter((o) => o.status === 'REJECTED' || o.status === 'WITHDRAWN').length;
+  const expiredCount = offers.filter((o) => o.status === 'EXPIRED').length;
 
   const getStatusBadge = (st: OfferStatus) => {
     switch (st) {
@@ -213,9 +214,9 @@ export const OrgSuperAdminOffers: React.FC = () => {
       {/* Top Banner & Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Organization Offer Management</h2>
+          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Admin Offer Management & Oversight</h2>
           <p className="text-xs text-slate-500">
-            Review, approve, create, send, and track candidate offer lifecycles with server-side permission enforcement.
+            Oversee offers across recruitment teams, review recruiter submissions, track accepted, rejected, and expired states.
           </p>
         </div>
 
@@ -223,7 +224,7 @@ export const OrgSuperAdminOffers: React.FC = () => {
           onClick={() => setIsCreateModalOpen(true)}
           className="px-4 py-2.5 bg-brand-blue-600 hover:bg-brand-blue-700 text-white text-xs font-bold rounded-2xl shadow-sm flex items-center gap-1.5 w-fit"
         >
-          <PlusCircle className="w-4 h-4" /> Create New Offer
+          <PlusCircle className="w-4 h-4" /> Create Offer (Admin)
         </button>
       </div>
 
@@ -234,20 +235,35 @@ export const OrgSuperAdminOffers: React.FC = () => {
           <div className="text-2xl font-extrabold text-slate-900">{totalCount}</div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-amber-200 bg-amber-50/30 shadow-xs space-y-1">
-          <span className="text-[10px] font-bold text-amber-700 uppercase">Pending Approval</span>
+          <span className="text-[10px] font-bold text-amber-700 uppercase">Pending Review</span>
           <div className="text-2xl font-extrabold text-amber-800">{pendingCount}</div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-blue-200 bg-blue-50/30 shadow-xs space-y-1">
-          <span className="text-[10px] font-bold text-blue-700 uppercase">Sent / Active</span>
-          <div className="text-2xl font-extrabold text-brand-blue-700">{sentCount}</div>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-emerald-200 bg-emerald-50/30 shadow-xs space-y-1">
-          <span className="text-[10px] font-bold text-emerald-800 uppercase">Accepted</span>
+        <div 
+          onClick={() => setStatusFilter('ACCEPTED')}
+          className="bg-white p-4 rounded-2xl border border-emerald-200 bg-emerald-50/30 shadow-xs space-y-1 cursor-pointer hover:border-emerald-400 transition-all"
+        >
+          <span className="text-[10px] font-bold text-emerald-800 uppercase flex items-center justify-between">
+            Accepted Offers <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+          </span>
           <div className="text-2xl font-extrabold text-emerald-700">{acceptedCount}</div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 bg-slate-50/60 shadow-xs space-y-1">
-          <span className="text-[10px] font-bold text-slate-500 uppercase">Closed / Withdrawn</span>
-          <div className="text-2xl font-extrabold text-slate-700">{rejectedCount}</div>
+        <div 
+          onClick={() => setStatusFilter('REJECTED')}
+          className="bg-white p-4 rounded-2xl border border-red-200 bg-red-50/30 shadow-xs space-y-1 cursor-pointer hover:border-red-400 transition-all"
+        >
+          <span className="text-[10px] font-bold text-red-700 uppercase flex items-center justify-between">
+            Rejected Offers <XCircle className="w-3.5 h-3.5 text-red-600" />
+          </span>
+          <div className="text-2xl font-extrabold text-red-600">{rejectedCount}</div>
+        </div>
+        <div 
+          onClick={() => setStatusFilter('EXPIRED')}
+          className="bg-white p-4 rounded-2xl border border-orange-200 bg-orange-50/30 shadow-xs space-y-1 cursor-pointer hover:border-orange-400 transition-all"
+        >
+          <span className="text-[10px] font-bold text-orange-700 uppercase flex items-center justify-between">
+            Expired Offers <Clock className="w-3.5 h-3.5 text-orange-600" />
+          </span>
+          <div className="text-2xl font-extrabold text-orange-600">{expiredCount}</div>
         </div>
       </div>
 

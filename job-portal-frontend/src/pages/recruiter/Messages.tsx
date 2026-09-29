@@ -18,28 +18,28 @@ export const RecruiterMessages: React.FC = () => {
 
   const candidatesList = [
     {
-      id: 'c1',
-      name: 'Dr. Aris Thorne',
-      role: 'Principal AI Researcher',
-      lastMessage: 'I have attached the updated research portfolio.',
+      id: 'cand_101',
+      name: 'Aarav Sharma',
+      role: 'Senior Python & FastAPI Engineer',
+      lastMessage: 'I have submitted my updated portfolio and project samples.',
       time: '10:42 AM',
       unread: 1,
       online: true
     },
     {
-      id: 'c2',
-      name: 'Sophia Lin',
-      role: 'Staff React Systems Architect',
-      lastMessage: 'Looking forward to the technical system design round on Thursday.',
+      id: 'cand_102',
+      name: 'Ananya Patel',
+      role: 'Full Stack React & Node.js Specialist',
+      lastMessage: 'Looking forward to the technical system design discussion.',
       time: 'Yesterday',
       unread: 0,
       online: false
     },
     {
-      id: 'c3',
-      name: 'Marcus Vance',
-      role: 'Senior DevOps & Cloud Engineer',
-      lastMessage: 'Can you clarify the remote work policy for this role?',
+      id: 'cand_103',
+      name: 'Vikramaditya Rao',
+      role: 'Backend Python & Cloud Engineer',
+      lastMessage: 'Thank you for sharing the job description and work details.',
       time: 'Sep 25',
       unread: 0,
       online: true
@@ -140,23 +140,28 @@ export const RecruiterMessages: React.FC = () => {
         {/* Conversation View */}
         <div className="flex-1 flex flex-col bg-white">
           {/* Active Header */}
-          <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-indigo-600 text-white font-black flex items-center justify-center text-sm">
-                D
-              </div>
-              <div>
-                <h3 className="text-xs font-bold text-slate-900">Dr. Aris Thorne</h3>
-                <p className="text-[11px] text-slate-500">Applied for: Principal AI Researcher</p>
-              </div>
-            </div>
+          {(() => {
+            const activeCand = candidatesList.find(c => c.id === activeCandidateId) || candidatesList[0];
+            return (
+              <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-indigo-600 text-white font-black flex items-center justify-center text-sm">
+                    {activeCand.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-900">{activeCand.name}</h3>
+                    <p className="text-[11px] text-slate-500">Applied for: {activeCand.role}</p>
+                  </div>
+                </div>
 
-            <div className="flex items-center gap-2">
-              <button className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all">
-                View Candidate Profile
-              </button>
-            </div>
-          </div>
+                <div className="flex items-center gap-2">
+                  <button className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all">
+                    View Candidate Profile
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Messages Feed */}
           <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50/30">

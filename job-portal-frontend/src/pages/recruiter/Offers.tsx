@@ -13,7 +13,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { Offer, OfferStatus } from '../../types/clyptus.types';
-import { INITIAL_OFFERS } from '../../store/clyptus.store';
+import { INITIAL_OFFERS, getStoreOffers, logAction } from '../../store/clyptus.store';
 
 interface ContextType {
   showToast: (msg: string) => void;
@@ -25,7 +25,7 @@ interface ContextType {
 
 export const RecruiterOffers: React.FC = () => {
   const { showToast, activeRecruiter } = useOutletContext<ContextType>();
-  const [offers, setOffers] = useState<Offer[]>(INITIAL_OFFERS);
+  const [offers, setOffers] = useState<Offer[]>(() => getStoreOffers());
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [auditModalOffer, setAuditModalOffer] = useState<Offer | null>(null);
 
@@ -40,20 +40,27 @@ export const RecruiterOffers: React.FC = () => {
     status: 'PENDING_APPROVAL' as OfferStatus
   });
 
-  const fetchOffers = async () => {
+  const fetchOffers = () => {
+    setOffers(getStoreOffers());
+  };
+
+  const saveOffers = (updated: Offer[]) => {
+    setOffers(updated);
     try {
-      const res = await fetch('http://localhost:5000/api/v1/offers');
-      const json = await res.json();
-      if (json.success && json.data && json.data.length > 0) {
-        setOffers(json.data);
-      }
-    } catch (err) {
-      console.warn('Backend offer API offline.');
-    }
+      localStorage.setItem('clyptus_offers', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('clyptus_store_updated', { detail: { type: 'OFFERS' } }));
+    } catch (e) {}
   };
 
   useEffect(() => {
     fetchOffers();
+    const handleSync = () => fetchOffers();
+    window.addEventListener('clyptus_store_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('clyptus_store_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, []);
 
   const handleCreateOffer = async (e: React.FormEvent) => {
@@ -70,50 +77,41 @@ export const RecruiterOffers: React.FC = () => {
     };
 
     try {
-      const res = await fetch('http://localhost:5000/api/v1/offers', {
+      await fetch('http://localhost:5000/api/v1/offers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      const json = await res.json();
-      if (json.success) {
-        fetchOffers();
-      } else {
-        const fallbackObj: Offer = {
-          id: `off_${Date.now()}`,
-          organizationId: 'org_abc_tech',
-          jobId: 'job_201',
-          jobTitle: createForm.role,
-          candidateId: `cand_${Date.now()}`,
-          candidateName: createForm.candidateName,
-          candidateEmail: createForm.candidateEmail,
-          role: createForm.role,
-          annualCTC: createForm.annualCTC,
-          joiningDate: createForm.joiningDate,
-          status: createForm.status,
-          createdBy: recruiterName,
-          createdAt: new Date().toISOString().split('T')[0]
-        };
-        setOffers([fallbackObj, ...offers]);
-      }
-    } catch (err) {
-      const fallbackObj: Offer = {
-        id: `off_${Date.now()}`,
-        organizationId: 'org_abc_tech',
-        jobId: 'job_201',
-        jobTitle: createForm.role,
-        candidateId: `cand_${Date.now()}`,
-        candidateName: createForm.candidateName,
-        candidateEmail: createForm.candidateEmail,
-        role: createForm.role,
-        annualCTC: createForm.annualCTC,
-        joiningDate: createForm.joiningDate,
-        status: createForm.status,
-        createdBy: recruiterName,
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-      setOffers([fallbackObj, ...offers]);
-    }
+    } catch (err) {}
+
+    const newOffer: Offer = {
+      id: `off_${Date.now()}`,
+      organizationId: 'org_abc_tech',
+      jobId: 'job_201',
+      jobTitle: createForm.role,
+      candidateId: `cand_${Date.now()}`,
+      candidateName: createForm.candidateName,
+      candidateEmail: createForm.candidateEmail,
+      role: createForm.role,
+      annualCTC: createForm.annualCTC,
+      joiningDate: createForm.joiningDate,
+      status: createForm.status,
+      createdBy: recruiterName,
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+
+    const updated = [newOffer, ...offers];
+    saveOffers(updated);
+
+    logAction(
+      recruiterName,
+      'RECRUITER',
+      'OFFER_CREATED',
+      'OfferLetter',
+      newOffer.id,
+      'OFFER',
+      `Submitted candidate offer for ${createForm.candidateName} (${createForm.candidateEmail}) as ${createForm.role} with CTC ${createForm.annualCTC}.`
+    );
 
     setIsCreateModalOpen(false);
     showToast(`Submitted offer letter for ${createForm.candidateName}!`);

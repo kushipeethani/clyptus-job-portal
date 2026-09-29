@@ -48,11 +48,18 @@ export const RecruiterAuditLogs: React.FC = () => {
     };
   }, []);
 
+  const activeRecruiter = (() => {
+    const saved = localStorage.getItem('clyptus_active_recruiter');
+    return saved ? JSON.parse(saved) : { id: 'rec_1', name: 'Elena Rostova' };
+  })();
+
   // Filter logs related to recruiter's own actions & assigned recruitment work
   const recruiterLogs = auditLogs.filter((log) => {
-    // Show actions by recruiters or relevant hiring pipeline events
-    if (log.role !== 'RECRUITER' && log.role !== 'ORGANIZATION_ADMIN' && log.role !== 'SUPER_ADMIN') {
-      return false;
+    // Do not show token usage or actions performed by OTHER recruiters
+    if (log.role === 'RECRUITER') {
+      const isOwnAction = (log.userId && log.userId === activeRecruiter.id) || 
+                         (log.userName && log.userName.toLowerCase().includes(activeRecruiter.name.toLowerCase()));
+      if (!isOwnAction) return false;
     }
 
     if (selectedDimension !== 'ALL') {

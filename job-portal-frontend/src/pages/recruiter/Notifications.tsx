@@ -19,7 +19,7 @@ export const RecruiterNotifications: React.FC = () => {
     {
       id: 'n1',
       title: 'New Application Received',
-      description: 'Dr. Aris Thorne submitted an application for Principal AI Researcher.',
+      description: 'Aarav Sharma submitted an application for Senior Python & FastAPI Engineer.',
       time: '10 mins ago',
       type: 'application',
       unread: true,
@@ -29,7 +29,7 @@ export const RecruiterNotifications: React.FC = () => {
     {
       id: 'n2',
       title: 'Interview Scheduled',
-      description: 'Technical System Design round scheduled with Sophia Lin for Thursday, 3:00 PM.',
+      description: 'Technical System Design round scheduled with Ananya Patel for Thursday, 3:00 PM.',
       time: '1 hour ago',
       type: 'interview',
       unread: true,

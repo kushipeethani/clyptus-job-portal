@@ -4,6 +4,7 @@ import { RecruiterLayout } from '../layouts/recruiter/RecruiterLayout';
 import { RecruiterLogin } from '../pages/recruiter/Login';
 import { RecruiterDashboard } from '../pages/recruiter/Dashboard';
 import { RecruiterCandidateSearch } from '../pages/recruiter/CandidateSearch';
+import { RecruiterShortlistedCandidates } from '../pages/recruiter/ShortlistedCandidates';
 import { RecruiterSavedCandidates } from '../pages/recruiter/SavedCandidates';
 import { RecruiterApplications } from '../pages/recruiter/Applications';
 import { RecruiterInterviews } from '../pages/recruiter/Interviews';
@@ -26,6 +27,7 @@ export const RecruiterRoutes: React.FC = () => {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<RecruiterDashboard />} />
         <Route path="jobs" element={<Jobs />} />
+        <Route path="shortlisted" element={<RecruiterShortlistedCandidates />} />
         <Route path="candidates" element={<RecruiterCandidateSearch />} />
         <Route path="saved-candidates" element={<RecruiterSavedCandidates />} />
         <Route path="applications" element={<RecruiterApplications />} />

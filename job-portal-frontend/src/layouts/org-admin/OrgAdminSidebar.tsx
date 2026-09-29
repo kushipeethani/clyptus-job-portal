@@ -23,7 +23,7 @@ export const OrgAdminSidebar: React.FC = () => {
         { label: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
         { label: 'Recruiters', path: '/admin/recruiters', icon: Users, badge: 'Governance' },
         { label: 'Jobs Overview', path: '/admin/jobs', icon: Briefcase },
-        { label: 'Candidates', path: '/admin/candidates', icon: UserSearch },
+        { label: 'Candidate Search', path: '/admin/candidates', icon: UserSearch },
         { label: 'Applications & ATS', path: '/admin/applications', icon: FileCheck },
         { label: 'Interviews', path: '/admin/interviews', icon: Calendar },
         { label: 'Offers', path: '/admin/offers', icon: Gift },

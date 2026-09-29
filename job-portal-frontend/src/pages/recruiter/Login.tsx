@@ -1,78 +1,71 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Lock, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Building2, Lock, Mail, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import { getStoreRecruiters } from '../../store/clyptus.store';
 
 export const RecruiterLogin: React.FC = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('elena.r@abctech.com');
-  const [password, setPassword] = useState('••••••••••••');
+  const [email, setEmail] = useState('kushi.peethani222@gmail.com');
+  const [password, setPassword] = useState('Clyptus@2026');
   const [tenantId, setTenantId] = useState('org_abc_tech');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMsg(null);
 
-    try {
-      const res = await fetch('http://localhost:5000/api/v1/recruiters');
-      const json = await res.json();
-      if (json.success && json.data) {
-        const found = json.data.find(
-          (r: any) => r.email.toLowerCase() === email.toLowerCase()
-        );
+    const inputEmail = email.trim().toLowerCase();
+    let foundRecruiter: any = null;
 
-        if (found) {
-          const recruiterSession = {
-            ...found,
-            remainingBalance: found.remainingBalance !== undefined ? found.remainingBalance : ((found.allocatedCredits || 50) - (found.totalCreditsUsed || 0))
-          };
-          localStorage.setItem('clyptus_active_recruiter', JSON.stringify(recruiterSession));
-        } else {
-          // If newly created recruiter or custom email, create active recruiter session
-          const isKushi = email.toLowerCase().includes('kushi');
-          const nameFromEmail = isKushi ? 'Kushi' : email.split('@')[0].replace('.', ' ');
-          const formattedName = isKushi ? 'Kushi' : (nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1));
-          const activeSession = {
-            id: `rec_${Date.now()}`,
-            organizationId: tenantId || 'org_abc_tech',
-            name: formattedName || 'Recruiter Account',
-            email: email,
-            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formattedName)}&background=F97316&color=fff`,
-            status: 'ACTIVE',
-            activeJobsCount: 0,
-            profileViewsCount: 0,
-            resumeDownloadsCount: 0,
-            totalCreditsUsed: 0,
-            allocatedCredits: 50,
-            remainingBalance: 50
-          };
-          localStorage.setItem('clyptus_active_recruiter', JSON.stringify(activeSession));
+    // 1. First check in local reactive store
+    const storeRecruiters = getStoreRecruiters();
+    foundRecruiter = storeRecruiters.find((r) => r.email.trim().toLowerCase() === inputEmail);
+
+    // 2. Fallback to API check if backend server is available
+    if (!foundRecruiter) {
+      try {
+        const res = await fetch('http://localhost:5000/api/v1/recruiters');
+        const json = await res.json();
+        if (json.success && json.data) {
+          foundRecruiter = json.data.find((r: any) => r.email.trim().toLowerCase() === inputEmail);
         }
-      }
-    } catch (err) {
-      // Offline fallback session
-      const isKushi = email.toLowerCase().includes('kushi');
-      const nameFromEmail = isKushi ? 'Kushi' : email.split('@')[0].replace('.', ' ');
-      const formattedName = isKushi ? 'Kushi' : (nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1));
-      const activeSession = {
-        id: `rec_${Date.now()}`,
-        organizationId: tenantId || 'org_abc_tech',
-        name: formattedName || 'Recruiter Account',
-        email: email,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formattedName)}&background=F97316&color=fff`,
-        status: 'ACTIVE',
-        activeJobsCount: 0,
-        profileViewsCount: 0,
-        resumeDownloadsCount: 0,
-        totalCreditsUsed: 0,
-        allocatedCredits: 50,
-        remainingBalance: 50
-      };
-      localStorage.setItem('clyptus_active_recruiter', JSON.stringify(activeSession));
-    } finally {
-      setIsLoading(false);
-      navigate('/recruiter/dashboard');
+      } catch (err) {}
     }
+
+    // 3. Strict verification: Only Admin or Super Admin created credentials are permitted to log in
+    if (!foundRecruiter) {
+      setErrorMsg('Invalid recruiter credentials! Only accounts created by Organization Admin or Super Admin can log in.');
+      setIsLoading(false);
+      return;
+    }
+
+    // 4. Verify Account Status
+    if (foundRecruiter.status === 'SUSPENDED' || foundRecruiter.status === 'INACTIVE') {
+      setErrorMsg('Your recruiter account is currently suspended or inactive. Please contact your Organization Admin.');
+      setIsLoading(false);
+      return;
+    }
+
+    // 5. Verify Password match if set on recruiter
+    if (foundRecruiter.password && password && foundRecruiter.password !== password) {
+      setErrorMsg('Invalid password for recruiter account. Please try again.');
+      setIsLoading(false);
+      return;
+    }
+
+    // Success: save active session and navigate to recruiter portal
+    const activeSession = {
+      ...foundRecruiter,
+      remainingBalance: foundRecruiter.remainingBalance !== undefined 
+        ? foundRecruiter.remainingBalance 
+        : ((foundRecruiter.allocatedCredits || 50) - (foundRecruiter.totalCreditsUsed || 0))
+    };
+
+    localStorage.setItem('clyptus_active_recruiter', JSON.stringify(activeSession));
+    setIsLoading(false);
+    navigate('/recruiter/dashboard');
   };
 
   return (
@@ -103,8 +96,17 @@ export const RecruiterLogin: React.FC = () => {
               Recruiter Portal
             </span>
             <h2 className="text-2xl font-extrabold text-white tracking-tight">Recruiter Login</h2>
-            <p className="text-xs text-slate-400">Login with your generated recruiter credentials</p>
+            <p className="text-xs text-slate-400">Login with credentials created by Admin or Super Admin</p>
           </div>
+
+          {errorMsg && (
+            <div className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-start gap-2.5 text-xs text-red-300">
+              <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold">{errorMsg}</p>
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
@@ -128,7 +130,7 @@ export const RecruiterLogin: React.FC = () => {
                 <input
                   type="email"
                   required
-                  placeholder="Enter your recruiter email..."
+                  placeholder="Enter admin-created recruiter email..."
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-xs text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -143,6 +145,7 @@ export const RecruiterLogin: React.FC = () => {
                 <input
                   type="password"
                   required
+                  placeholder="Enter password..."
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-xs text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -153,32 +156,33 @@ export const RecruiterLogin: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 mt-2"
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs shadow-lg transition-all flex items-center justify-center gap-2"
             >
-              {isLoading ? 'Authenticating Recruiter...' : 'Login to Recruiter Workspace'} <ArrowRight className="w-4 h-4" />
+              {isLoading ? (
+                <span>Authenticating...</span>
+              ) : (
+                <>
+                  <span>Sign In to Recruiter Portal</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
 
-          <div className="pt-4 border-t border-slate-700/60 text-center">
-            <button
-              onClick={() => {
-                setEmail('elena.r@abctech.com');
-                setTenantId('org_abc_tech');
-              }}
-              className="text-xs font-semibold text-indigo-400 hover:underline"
-            >
-              Use Default Demo Credentials (elena.r@abctech.com)
-            </button>
+          <div className="pt-4 border-t border-slate-700/60 text-center text-[11px] text-slate-400 space-y-1">
+            <p className="flex items-center justify-center gap-1 font-semibold text-slate-300">
+              <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" /> Admin Authorized Access Only
+            </p>
+            <p>Don't have credentials? Request your Admin or Super Admin to create a recruiter account.</p>
           </div>
 
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="px-8 py-4 text-center text-xs text-slate-500 border-t border-slate-800">
-        Clyptus Enterprise Multi-Tenant Job Portal • Recruiter Authentication
+      <footer className="px-8 py-4 text-center text-xs text-slate-500 relative z-10">
+        © 2026 Clyptus Multi-Tenant Recruitment Platform. All rights reserved.
       </footer>
-
     </div>
   );
 };

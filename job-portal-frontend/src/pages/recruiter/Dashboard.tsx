@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { 
   Briefcase, 
@@ -13,8 +13,14 @@ import {
   FileCheck,
   UserCheck
 } from 'lucide-react';
-import { OrganizationCreditAccount } from '../../types/clyptus.types';
-import { INITIAL_JOBS, INITIAL_CANDIDATES, INITIAL_APPLICATIONS, INITIAL_INTERVIEWS, INITIAL_OFFERS } from '../../store/clyptus.store';
+import { OrganizationCreditAccount, Application, Interview, Offer, Job } from '../../types/clyptus.types';
+import { 
+  INITIAL_JOBS, 
+  getStoreApplications, 
+  getStoreInterviews, 
+  getStoreOffers, 
+  getStoreJobs 
+} from '../../store/clyptus.store';
 
 interface ContextType {
   creditAccount: OrganizationCreditAccount;
@@ -30,11 +36,44 @@ interface ContextType {
 }
 
 export const RecruiterDashboard: React.FC = () => {
-  const { creditAccount, recruiterCredits, activeRecruiter, jobs } = useOutletContext<ContextType>();
+  const { creditAccount, recruiterCredits, activeRecruiter, jobs: contextJobs } = useOutletContext<ContextType>();
   const navigate = useNavigate();
 
-  const myJobs = (jobs || INITIAL_JOBS).filter((j) => j.recruiterId === activeRecruiter?.id || j.recruiterName === activeRecruiter?.name || j.recruiterId === 'rec_1');
+  const [applications, setApplications] = useState<Application[]>(getStoreApplications());
+  const [interviews, setInterviews] = useState<Interview[]>(getStoreInterviews());
+  const [offers, setOffers] = useState<Offer[]>(getStoreOffers());
+  const [jobsList, setJobsList] = useState<Job[]>(contextJobs || getStoreJobs());
+
+  const fetchFunnelData = () => {
+    setApplications(getStoreApplications());
+    setInterviews(getStoreInterviews());
+    setOffers(getStoreOffers());
+    setJobsList(getStoreJobs());
+  };
+
+  useEffect(() => {
+    fetchFunnelData();
+    const handleSync = () => fetchFunnelData();
+    window.addEventListener('clyptus_store_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('clyptus_store_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
+
+  const myJobs = (jobsList || INITIAL_JOBS).filter(
+    (j: Job) => j.recruiterId === activeRecruiter?.id || j.recruiterName === activeRecruiter?.name || j.recruiterId === 'rec_1'
+  );
   const availableCredits = recruiterCredits !== undefined ? recruiterCredits : (activeRecruiter?.remainingBalance !== undefined ? activeRecruiter.remainingBalance : 50);
+
+  // Dynamic Funnel Counts from Store (Updates after every action)
+  const applicationsCount = applications.length;
+  const screeningCount = applications.filter((a: Application) => (a.status as string) === 'APPLIED' || (a.status as string) === 'SCREENING' || a.status === 'APPLICATION_VIEWED' || !a.status).length;
+  const shortlistedCount = applications.filter((a: Application) => a.status === 'SHORTLISTED').length;
+  const interviewCount = interviews.filter((i: Interview) => i.status !== 'CANCELLED').length;
+  const offerCount = offers.length;
+  const hiredCount = offers.filter((o: Offer) => o.status === 'ACCEPTED').length;
 
   return (
     <div className="space-y-6">
@@ -66,42 +105,40 @@ export const RecruiterDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Hiring Funnel Overview (Section 2 Specification: Applications → Screening → Shortlisted → Interview → Offer → Hired) */}
+      {/* Hiring Funnel Overview (Dynamically updated after every action) */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-slate-900 text-sm">Recruiter Hiring Funnel Progress</h3>
-          <span className="text-xs text-slate-500 font-semibold">Active Pipeline Metrics</span>
+          <span className="text-xs text-slate-500 font-semibold">Live Pipeline Metrics</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-1">
             <span className="text-[10px] font-extrabold uppercase text-slate-500">1. Applications</span>
-            <div className="text-xl font-black text-slate-900">56</div>
+            <div className="text-xl font-black text-slate-900">{applicationsCount}</div>
           </div>
           <div className="p-3 bg-blue-50/80 rounded-2xl border border-blue-200 text-center space-y-1">
             <span className="text-[10px] font-extrabold uppercase text-blue-700">2. Screening</span>
-            <div className="text-xl font-black text-blue-800">28</div>
+            <div className="text-xl font-black text-blue-800">{screeningCount}</div>
           </div>
           <div className="p-3 bg-orange-50/80 rounded-2xl border border-orange-200 text-center space-y-1">
             <span className="text-[10px] font-extrabold uppercase text-orange-700">3. Shortlisted</span>
-            <div className="text-xl font-black text-orange-800">12</div>
+            <div className="text-xl font-black text-orange-800">{shortlistedCount}</div>
           </div>
           <div className="p-3 bg-purple-50/80 rounded-2xl border border-purple-200 text-center space-y-1">
             <span className="text-[10px] font-extrabold uppercase text-purple-700">4. Interview</span>
-            <div className="text-xl font-black text-purple-800">6</div>
+            <div className="text-xl font-black text-purple-800">{interviewCount}</div>
           </div>
           <div className="p-3 bg-amber-50/80 rounded-2xl border border-amber-200 text-center space-y-1">
             <span className="text-[10px] font-extrabold uppercase text-amber-800">5. Offer</span>
-            <div className="text-xl font-black text-amber-900">2</div>
+            <div className="text-xl font-black text-amber-900">{offerCount}</div>
           </div>
           <div className="p-3 bg-emerald-50/80 rounded-2xl border border-emerald-200 text-center space-y-1">
             <span className="text-[10px] font-extrabold uppercase text-emerald-800">6. Hired</span>
-            <div className="text-xl font-black text-emerald-900">4</div>
+            <div className="text-xl font-black text-emerald-900">{hiredCount}</div>
           </div>
         </div>
       </div>
-
-      {/* Assigned Jobs & Recruiter Tasks */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
@@ -116,7 +153,7 @@ export const RecruiterDashboard: React.FC = () => {
           </div>
 
           <div className="space-y-3">
-            {myJobs.map((job) => (
+            {myJobs.map((job: Job) => (
               <div key={job.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 flex items-center justify-between">
                 <div>
                   <h4 className="font-bold text-slate-900 text-xs">{job.title}</h4>

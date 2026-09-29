@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 import { OrganizationCreditAccount } from '../../types/clyptus.types';
-import { INITIAL_ADMINS, INITIAL_RECRUITERS } from '../../store/clyptus.store';
+import { INITIAL_ADMINS, INITIAL_RECRUITERS, getStoreCreditAccount, getStoreRecruiters } from '../../store/clyptus.store';
 
 interface ContextType {
   creditAccount: OrganizationCreditAccount;
@@ -31,49 +31,27 @@ export const OrgSuperAdminDashboard: React.FC = () => {
   const context = useOutletContext<ContextType>();
   const navigate = useNavigate();
 
-  const [liveAccount, setLiveAccount] = useState<OrganizationCreditAccount>(context?.creditAccount || {
-    organizationId: 'org_abc_tech',
-    organizationName: 'ABC Recruitment Pvt Ltd',
-    balance: 1000,
-    totalAllocated: 2500,
-    totalConsumed: 1500,
-  });
-
+  const [liveAccount, setLiveAccount] = useState<OrganizationCreditAccount>(getStoreCreditAccount());
   const [adminsCount, setAdminsCount] = useState<number>(INITIAL_ADMINS.length);
-  const [recruitersCount, setRecruitersCount] = useState<number>(INITIAL_RECRUITERS.length);
-  const [recruitersList, setRecruitersList] = useState<any[]>(INITIAL_RECRUITERS);
+  const [recruitersCount, setRecruitersCount] = useState<number>(getStoreRecruiters().length);
+  const [recruitersList, setRecruitersList] = useState<any[]>(getStoreRecruiters());
 
-  const fetchDashboardData = async () => {
-    try {
-      const [accRes, admRes, recRes] = await Promise.all([
-        fetch('http://localhost:5000/api/v1/credits/account'),
-        fetch('http://localhost:5000/api/v1/admins'),
-        fetch('http://localhost:5000/api/v1/recruiters')
-      ]);
-
-      const accJson = await accRes.json();
-      const admJson = await admRes.json();
-      const recJson = await recRes.json();
-
-      if (accJson.success && accJson.data?.account) {
-        setLiveAccount(accJson.data.account);
-      }
-      if (admJson.success && admJson.data) {
-        setAdminsCount(admJson.data.length);
-      }
-      if (recJson.success && recJson.data) {
-        setRecruitersCount(recJson.data.length);
-        setRecruitersList(recJson.data);
-      }
-    } catch (err) {
-      console.warn('Backend REST API offline, utilizing state.');
-    }
+  const fetchDashboardData = () => {
+    setLiveAccount(getStoreCreditAccount());
+    const recs = getStoreRecruiters();
+    setRecruitersCount(recs.length);
+    setRecruitersList(recs);
   };
 
   useEffect(() => {
     fetchDashboardData();
-    const interval = setInterval(fetchDashboardData, 3000);
-    return () => clearInterval(interval);
+    const handleSync = () => fetchDashboardData();
+    window.addEventListener('clyptus_store_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('clyptus_store_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, []);
 
   return (

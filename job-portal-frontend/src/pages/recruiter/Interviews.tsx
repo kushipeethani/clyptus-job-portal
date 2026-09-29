@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Calendar, PlusCircle, Video, CheckCircle2, Clock, X, Edit3 } from 'lucide-react';
 import { Interview, InterviewStatus } from '../../types/clyptus.types';
-import { INITIAL_INTERVIEWS } from '../../store/clyptus.store';
+import { INITIAL_INTERVIEWS, logAction } from '../../store/clyptus.store';
 
 interface ContextType {
   showToast: (msg: string) => void;
@@ -12,7 +12,21 @@ const STATUSES: InterviewStatus[] = ['SCHEDULED', 'CONFIRMED', 'RESCHEDULED', 'C
 
 export const RecruiterInterviews: React.FC = () => {
   const { showToast } = useOutletContext<ContextType>();
-  const [interviews, setInterviews] = useState<Interview[]>(INITIAL_INTERVIEWS);
+  const activeRecruiter = (() => {
+    const saved = localStorage.getItem('clyptus_active_recruiter');
+    return saved ? JSON.parse(saved) : { id: 'rec_1', name: 'Elena Rostova' };
+  })();
+
+  const [interviews, setInterviews] = useState<Interview[]>(() => {
+    const saved = localStorage.getItem('clyptus_interviews');
+    return saved ? JSON.parse(saved) : INITIAL_INTERVIEWS;
+  });
+
+  const saveInterviews = (updated: Interview[]) => {
+    setInterviews(updated);
+    localStorage.setItem('clyptus_interviews', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('clyptus_store_updated', { detail: { type: 'INTERVIEWS' } }));
+  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formCandidate, setFormCandidate] = useState('Alex Rivers');
@@ -24,9 +38,8 @@ export const RecruiterInterviews: React.FC = () => {
   const [formNotes, setFormNotes] = useState('Technical discussion focusing on FastAPI & PostgreSQL scalability.');
 
   const handleStatusChange = (id: string, newStatus: InterviewStatus) => {
-    setInterviews((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, status: newStatus } : i))
-    );
+    const updated = interviews.map((i) => (i.id === id ? { ...i, status: newStatus } : i));
+    saveInterviews(updated);
     showToast(`Updated interview status to ${newStatus}`);
   };
 
@@ -37,10 +50,10 @@ export const RecruiterInterviews: React.FC = () => {
       organizationId: 'org_abc_tech',
       jobId: 'job_201',
       jobTitle: formJob,
-      candidateId: 'cand_101',
+      candidateId: `cand_${Date.now()}`,
       candidateName: formCandidate,
-      recruiterId: 'rec_1',
-      recruiterName: 'Elena Rostova',
+      recruiterId: activeRecruiter.id,
+      recruiterName: activeRecruiter.name,
       interviewType: formType,
       date: formDate,
       time: formTime,
@@ -48,7 +61,20 @@ export const RecruiterInterviews: React.FC = () => {
       notes: formNotes,
       status: 'SCHEDULED',
     };
-    setInterviews([newInt, ...interviews]);
+
+    const updated = [newInt, ...interviews];
+    saveInterviews(updated);
+
+    logAction(
+      activeRecruiter.name,
+      'RECRUITER',
+      'INTERVIEW_SCHEDULED',
+      'InterviewSlot',
+      newInt.id,
+      'INTERVIEW',
+      `Scheduled ${formType.replace('_', ' ')} interview for ${formCandidate} on ${formDate} at ${formTime}.`
+    );
+
     setIsModalOpen(false);
     showToast(`Scheduled ${formType.replace('_', ' ')} for ${formCandidate}!`);
   };

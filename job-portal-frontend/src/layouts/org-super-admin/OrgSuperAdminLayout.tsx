@@ -11,19 +11,8 @@ export const OrgSuperAdminLayout: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Fetch live credit account balance from REST API backend
-  const fetchCreditAccount = async () => {
-    try {
-      const res = await fetch('http://localhost:5000/api/v1/credits/account');
-      const json = await res.json();
-      if (json.success && json.data?.account) {
-        setCreditAccount(json.data.account);
-        saveStoreCreditAccount(json.data.account);
-      } else {
-        setCreditAccount(getStoreCreditAccount());
-      }
-    } catch (err) {
-      setCreditAccount(getStoreCreditAccount());
-    }
+  const fetchCreditAccount = () => {
+    setCreditAccount(getStoreCreditAccount());
   };
 
   useEffect(() => {

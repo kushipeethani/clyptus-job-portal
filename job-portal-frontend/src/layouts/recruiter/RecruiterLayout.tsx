@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { RecruiterHeader } from './RecruiterHeader';
 import { RecruiterSidebar } from './RecruiterSidebar';
-import { INITIAL_CREDIT_ACCOUNT, INITIAL_JOBS } from '../../store/clyptus.store';
+import { INITIAL_CREDIT_ACCOUNT, INITIAL_JOBS, getStoreRecruiters } from '../../store/clyptus.store';
 import { Job } from '../../types/clyptus.types';
 import { CheckCircle2, X, PlusCircle } from 'lucide-react';
 
@@ -45,31 +45,28 @@ export const RecruiterLayout: React.FC = () => {
     }
   };
 
-  // Fetch live recruiter quota from backend API for logged-in recruiter
-  const fetchRecruiterBalance = async () => {
+  // Fetch live recruiter quota from store for logged-in recruiter
+  const fetchRecruiterBalance = () => {
     try {
       const saved = localStorage.getItem('clyptus_active_recruiter');
       const currentRec = saved ? JSON.parse(saved) : activeRecruiter;
       
-      const res = await fetch('http://localhost:5000/api/v1/recruiters');
-      const json = await res.json();
-      if (json.success && json.data) {
-        const found = json.data.find(
-          (r: any) => r.email.toLowerCase() === currentRec.email.toLowerCase() || r.id === currentRec.id
-        );
-        if (found) {
-          const remaining = found.remainingBalance !== undefined ? found.remainingBalance : ((found.allocatedCredits || 50) - (found.totalCreditsUsed || 0));
-          setActiveRecruiter({
-            id: found.id,
-            name: found.name,
-            email: found.email,
-            avatar: found.avatar || currentRec.avatar
-          });
-          setRecruiterCredits(remaining);
-        } else if (currentRec) {
-          const remaining = currentRec.remainingBalance !== undefined ? currentRec.remainingBalance : ((currentRec.allocatedCredits ?? 50) - (currentRec.totalCreditsUsed || 0));
-          setRecruiterCredits(remaining);
-        }
+      const recruiters = getStoreRecruiters();
+      const found = recruiters.find(
+        (r: any) => r.email.toLowerCase() === currentRec.email.toLowerCase() || r.id === currentRec.id
+      );
+      if (found) {
+        const remaining = found.remainingBalance !== undefined ? found.remainingBalance : ((found.allocatedCredits || 50) - (found.totalCreditsUsed || 0));
+        setActiveRecruiter({
+          id: found.id,
+          name: found.name,
+          email: found.email,
+          avatar: found.avatar || currentRec.avatar
+        });
+        setRecruiterCredits(remaining);
+      } else if (currentRec) {
+        const remaining = currentRec.remainingBalance !== undefined ? currentRec.remainingBalance : ((currentRec.allocatedCredits ?? 50) - (currentRec.totalCreditsUsed || 0));
+        setRecruiterCredits(remaining);
       }
     } catch (err) {
       if (activeRecruiter) {
@@ -82,8 +79,16 @@ export const RecruiterLayout: React.FC = () => {
   useEffect(() => {
     fetchJobs();
     fetchRecruiterBalance();
-    const interval = setInterval(fetchRecruiterBalance, 3000);
-    return () => clearInterval(interval);
+
+    const handleSync = () => {
+      fetchRecruiterBalance();
+    };
+    window.addEventListener('clyptus_store_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('clyptus_store_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, []);
 
   const [jobForm, setJobForm] = useState({

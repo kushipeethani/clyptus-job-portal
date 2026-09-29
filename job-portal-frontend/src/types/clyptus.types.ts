@@ -24,6 +24,9 @@ export interface RecruiterUser {
   organizationId: string;
   name: string;
   email: string;
+  password?: string;
+  phone?: string;
+  recruiterRole?: string;
   avatar: string;
   status: UserStatus;
   activeJobsCount: number;
@@ -195,4 +198,18 @@ export interface AuditLog {
   details?: string;
   timestamp: string;
   ip: string;
+}
+
+export interface ShortlistedCandidate {
+  id: string;
+  candidateId: string;
+  candidateName: string;
+  candidateEmail: string;
+  title: string;
+  recruiterId: string;
+  recruiterName: string;
+  shortlistedAt: string;
+  location?: string;
+  experience?: string;
+  skills?: string[];
 }
