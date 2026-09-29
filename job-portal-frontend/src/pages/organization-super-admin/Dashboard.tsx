@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { 
   Users, 
@@ -6,8 +6,6 @@ import {
   ShieldCheck, 
   ChevronRight,
   UserCheck,
-  UserPlus,
-  PlusCircle,
   CreditCard
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
@@ -16,6 +14,7 @@ import { INITIAL_ADMINS, INITIAL_RECRUITERS } from '../../store/clyptus.store';
 
 interface ContextType {
   creditAccount: OrganizationCreditAccount;
+  fetchCreditAccount?: () => void;
 }
 
 const analyticsData = [
@@ -29,8 +28,53 @@ const analyticsData = [
 ];
 
 export const OrgSuperAdminDashboard: React.FC = () => {
-  const { creditAccount } = useOutletContext<ContextType>();
+  const context = useOutletContext<ContextType>();
   const navigate = useNavigate();
+
+  const [liveAccount, setLiveAccount] = useState<OrganizationCreditAccount>(context?.creditAccount || {
+    organizationId: 'org_abc_tech',
+    organizationName: 'ABC Recruitment Pvt Ltd',
+    balance: 1000,
+    totalAllocated: 2500,
+    totalConsumed: 1500,
+  });
+
+  const [adminsCount, setAdminsCount] = useState<number>(INITIAL_ADMINS.length);
+  const [recruitersCount, setRecruitersCount] = useState<number>(INITIAL_RECRUITERS.length);
+  const [recruitersList, setRecruitersList] = useState<any[]>(INITIAL_RECRUITERS);
+
+  const fetchDashboardData = async () => {
+    try {
+      const [accRes, admRes, recRes] = await Promise.all([
+        fetch('http://localhost:5000/api/v1/credits/account'),
+        fetch('http://localhost:5000/api/v1/admins'),
+        fetch('http://localhost:5000/api/v1/recruiters')
+      ]);
+
+      const accJson = await accRes.json();
+      const admJson = await admRes.json();
+      const recJson = await recRes.json();
+
+      if (accJson.success && accJson.data?.account) {
+        setLiveAccount(accJson.data.account);
+      }
+      if (admJson.success && admJson.data) {
+        setAdminsCount(admJson.data.length);
+      }
+      if (recJson.success && recJson.data) {
+        setRecruitersCount(recJson.data.length);
+        setRecruitersList(recJson.data);
+      }
+    } catch (err) {
+      console.warn('Backend REST API offline, utilizing state.');
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+    const interval = setInterval(fetchDashboardData, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -44,7 +88,7 @@ export const OrgSuperAdminDashboard: React.FC = () => {
             </span>
             <h2 className="text-2xl font-extrabold tracking-tight">ABC Recruitment Pvt Ltd</h2>
             <p className="text-xs text-slate-300">
-              Manage organization admins, create/remove recruiters with credentials, allocate credits to users, and inspect audit logs.
+              Manage organization admins, recruiters with credentials, credit quotas, and audit logs.
             </p>
           </div>
 
@@ -55,7 +99,7 @@ export const OrgSuperAdminDashboard: React.FC = () => {
             <div>
               <div className="text-[10px] font-bold text-slate-300 uppercase">Available Credits</div>
               <div className="text-xl font-extrabold text-white">
-                {creditAccount.balance.toLocaleString()} <span className="text-xs font-normal text-slate-300">credits</span>
+                {liveAccount.balance.toLocaleString()} <span className="text-xs font-normal text-slate-300">credits</span>
               </div>
             </div>
           </div>
@@ -72,7 +116,7 @@ export const OrgSuperAdminDashboard: React.FC = () => {
               <UserCheck className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-slate-900 mt-2">{INITIAL_ADMINS.length}</div>
+          <div className="text-2xl font-extrabold text-slate-900 mt-2">{adminsCount}</div>
           <div className="text-[11px] text-slate-500 mt-1">Configurable RBAC Permissions</div>
         </div>
 
@@ -83,7 +127,7 @@ export const OrgSuperAdminDashboard: React.FC = () => {
               <Users className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-slate-900 mt-2">{INITIAL_RECRUITERS.length}</div>
+          <div className="text-2xl font-extrabold text-slate-900 mt-2">{recruitersCount}</div>
           <div className="text-[11px] text-slate-500 mt-1">Manage Credentials & Quotas</div>
         </div>
 
@@ -94,29 +138,10 @@ export const OrgSuperAdminDashboard: React.FC = () => {
               <Coins className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-slate-900 mt-2">{creditAccount.totalConsumed}</div>
+          <div className="text-2xl font-extrabold text-slate-900 mt-2">{liveAccount.totalConsumed}</div>
           <div className="text-[11px] text-orange-600 font-semibold mt-1">Profile Views & Resumes</div>
         </div>
 
-      </div>
-
-      {/* Quick Actions Bar */}
-      <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <span className="text-xs font-bold text-slate-700">Quick Governance Actions:</span>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => navigate('/organization-super-admin/recruiters')}
-            className="px-3.5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs flex items-center gap-1.5"
-          >
-            <UserPlus className="w-4 h-4" /> Add New Recruiter & Create Credentials
-          </button>
-          <button
-            onClick={() => navigate('/organization-super-admin/credits')}
-            className="px-3.5 py-2 text-xs font-bold text-white bg-brand-orange-500 hover:bg-brand-orange-600 rounded-xl shadow-xs flex items-center gap-1.5"
-          >
-            <Coins className="w-4 h-4" /> Allocate Credits to Users
-          </button>
-        </div>
       </div>
 
       {/* Credit Usage Analytics Chart & Recruiter Usage Breakdown */}
@@ -155,7 +180,7 @@ export const OrgSuperAdminDashboard: React.FC = () => {
             <p className="text-xs text-slate-500 mt-0.5">Recruiter-wise breakdown of credit consumption</p>
 
             <div className="mt-4 space-y-3">
-              {INITIAL_RECRUITERS.map((rec) => (
+              {recruitersList.map((rec) => (
                 <div key={rec.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-slate-900">{rec.name}</span>
@@ -172,7 +197,7 @@ export const OrgSuperAdminDashboard: React.FC = () => {
 
           <div className="pt-3 border-t border-slate-100">
             <button 
-              onClick={() => navigate('/organization-super-admin/credits')}
+              onClick={() => navigate('/organization-super-admin/tokens')}
               className="w-full text-xs font-bold text-brand-blue-600 hover:text-brand-blue-800 flex items-center justify-center gap-1"
             >
               Allocate Credits & View Ledger <ChevronRight className="w-4 h-4" />
