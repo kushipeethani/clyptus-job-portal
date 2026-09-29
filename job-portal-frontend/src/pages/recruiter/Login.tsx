@@ -22,44 +22,51 @@ export const RecruiterLogin: React.FC = () => {
         );
 
         if (found) {
-          localStorage.setItem('clyptus_active_recruiter', JSON.stringify(found));
+          const recruiterSession = {
+            ...found,
+            remainingBalance: found.remainingBalance !== undefined ? found.remainingBalance : ((found.allocatedCredits || 50) - (found.totalCreditsUsed || 0))
+          };
+          localStorage.setItem('clyptus_active_recruiter', JSON.stringify(recruiterSession));
         } else {
-          // If newly created recruiter or demo email not in db yet, create active recruiter session
-          const nameFromEmail = email.split('@')[0].replace('.', ' ');
-          const formattedName = nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
+          // If newly created recruiter or custom email, create active recruiter session
+          const isKushi = email.toLowerCase().includes('kushi');
+          const nameFromEmail = isKushi ? 'Kushi' : email.split('@')[0].replace('.', ' ');
+          const formattedName = isKushi ? 'Kushi' : (nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1));
           const activeSession = {
             id: `rec_${Date.now()}`,
             organizationId: tenantId || 'org_abc_tech',
             name: formattedName || 'Recruiter Account',
             email: email,
-            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formattedName)}&background=4F46E5&color=fff`,
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formattedName)}&background=F97316&color=fff`,
             status: 'ACTIVE',
             activeJobsCount: 0,
             profileViewsCount: 0,
             resumeDownloadsCount: 0,
             totalCreditsUsed: 0,
-            allocatedCredits: 250,
-            remainingBalance: 250
+            allocatedCredits: 50,
+            remainingBalance: 50
           };
           localStorage.setItem('clyptus_active_recruiter', JSON.stringify(activeSession));
         }
       }
     } catch (err) {
       // Offline fallback session
-      const nameFromEmail = email.split('@')[0].replace('.', ' ');
+      const isKushi = email.toLowerCase().includes('kushi');
+      const nameFromEmail = isKushi ? 'Kushi' : email.split('@')[0].replace('.', ' ');
+      const formattedName = isKushi ? 'Kushi' : (nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1));
       const activeSession = {
         id: `rec_${Date.now()}`,
         organizationId: tenantId || 'org_abc_tech',
-        name: nameFromEmail || 'Recruiter Account',
+        name: formattedName || 'Recruiter Account',
         email: email,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(nameFromEmail)}&background=4F46E5&color=fff`,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formattedName)}&background=F97316&color=fff`,
         status: 'ACTIVE',
         activeJobsCount: 0,
         profileViewsCount: 0,
         resumeDownloadsCount: 0,
         totalCreditsUsed: 0,
-        allocatedCredits: 250,
-        remainingBalance: 250
+        allocatedCredits: 50,
+        remainingBalance: 50
       };
       localStorage.setItem('clyptus_active_recruiter', JSON.stringify(activeSession));
     } finally {

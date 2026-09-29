@@ -180,18 +180,23 @@ export const OrgSuperAdminDashboard: React.FC = () => {
             <p className="text-xs text-slate-500 mt-0.5">Recruiter-wise breakdown of credit consumption</p>
 
             <div className="mt-4 space-y-3">
-              {recruitersList.map((rec) => (
-                <div key={rec.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-slate-900">{rec.name}</span>
-                    <span className="font-extrabold text-brand-orange-600">{rec.totalCreditsUsed} credits</span>
+              {recruitersList.map((rec) => {
+                const avail = rec.remainingBalance !== undefined 
+                  ? rec.remainingBalance 
+                  : ((rec.allocatedCredits || 50) - (rec.totalCreditsUsed || 0));
+
+                return (
+                  <div key={rec.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-900">{rec.name}</span>
+                      <span className="font-extrabold text-brand-orange-600">{avail} credits</span>
+                    </div>
+                    <div className="flex justify-between text-[10px] text-slate-500">
+                      <span>{rec.activeJobsCount || 0} Active Jobs • {rec.profileViewsCount || 0} views • {rec.resumeDownloadsCount || 0} downloads</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-[10px] text-slate-500">
-                    <span>Views: {rec.profileViewsCount}</span>
-                    <span>Downloads: {rec.resumeDownloadsCount}</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

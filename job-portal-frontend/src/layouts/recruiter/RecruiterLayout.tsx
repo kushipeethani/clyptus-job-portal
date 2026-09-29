@@ -58,20 +58,24 @@ export const RecruiterLayout: React.FC = () => {
           (r: any) => r.email.toLowerCase() === currentRec.email.toLowerCase() || r.id === currentRec.id
         );
         if (found) {
+          const remaining = found.remainingBalance !== undefined ? found.remainingBalance : ((found.allocatedCredits || 50) - (found.totalCreditsUsed || 0));
           setActiveRecruiter({
             id: found.id,
             name: found.name,
             email: found.email,
             avatar: found.avatar || currentRec.avatar
           });
-          const remaining = found.allocatedCredits - found.totalCreditsUsed;
           setRecruiterCredits(remaining);
-        } else if (currentRec.allocatedCredits !== undefined) {
-          setRecruiterCredits(currentRec.allocatedCredits - (currentRec.totalCreditsUsed || 0));
+        } else if (currentRec) {
+          const remaining = currentRec.remainingBalance !== undefined ? currentRec.remainingBalance : ((currentRec.allocatedCredits ?? 50) - (currentRec.totalCreditsUsed || 0));
+          setRecruiterCredits(remaining);
         }
       }
     } catch (err) {
-      console.warn('Backend credit API offline.');
+      if (activeRecruiter) {
+        const remaining = (activeRecruiter as any).remainingBalance !== undefined ? (activeRecruiter as any).remainingBalance : 50;
+        setRecruiterCredits(remaining);
+      }
     }
   };
 
@@ -176,7 +180,7 @@ export const RecruiterLayout: React.FC = () => {
       <div className="flex flex-1 overflow-hidden">
         <RecruiterSidebar />
         <main className="flex-1 overflow-y-auto p-6 max-w-7xl mx-auto w-full">
-          <Outlet context={{ creditAccount, setCreditAccount, recruiterCredits, setRecruiterCredits, fetchRecruiterBalance, jobs, setJobs, showToast }} />
+          <Outlet context={{ creditAccount, setCreditAccount, recruiterCredits, setRecruiterCredits, fetchRecruiterBalance, jobs, setJobs, showToast, activeRecruiter }} />
         </main>
       </div>
 

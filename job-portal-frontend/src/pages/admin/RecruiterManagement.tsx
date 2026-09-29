@@ -47,12 +47,14 @@ export const AdminRecruiterManagement: React.FC = () => {
       organizationId: 'org_abc_tech',
       name: formName,
       email: formEmail,
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80',
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formName)}&background=4F46E5&color=fff`,
       status: 'ACTIVE',
       activeJobsCount: 0,
       profileViewsCount: 0,
       resumeDownloadsCount: 0,
       totalCreditsUsed: 0,
+      allocatedCredits: formCredits,
+      remainingBalance: formCredits,
       createdAt: new Date().toISOString().split('T')[0],
     };
 
@@ -84,6 +86,11 @@ export const AdminRecruiterManagement: React.FC = () => {
   const handleAllocateCredits = (e: React.FormEvent) => {
     e.preventDefault();
     if (!creditModalUser) return;
+    setRecruiters(prev => prev.map(r => r.id === creditModalUser.id ? {
+      ...r,
+      allocatedCredits: (r.allocatedCredits || 0) + additionalCredits,
+      remainingBalance: (r.remainingBalance || 0) + additionalCredits
+    } : r));
     showToast(`Allocated +${additionalCredits} credits to recruiter ${creditModalUser.name}!`);
     setCreditModalUser(null);
   };
@@ -130,7 +137,7 @@ export const AdminRecruiterManagement: React.FC = () => {
           <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 font-mono text-xs space-y-2">
             <div className="flex justify-between">
               <span className="text-slate-400">Recruiter Login URL:</span>
-              <strong className="text-brand-blue-400">http://localhost:3003/recruiter/login</strong>
+              <strong className="text-brand-blue-400">http://localhost:3000/recruiter/login</strong>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">Recruiter Email:</span>
@@ -162,48 +169,54 @@ export const AdminRecruiterManagement: React.FC = () => {
                 <th className="p-4">Active Jobs</th>
                 <th className="p-4">Profile Views (-1 Cr)</th>
                 <th className="p-4">Resume Downloads (-1 Cr)</th>
-                <th className="p-4">Total Credits Consumed</th>
+                <th className="p-4">Allocated Credit Quota</th>
                 <th className="p-4 text-right pr-6">Admin Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
-              {recruiters.map((rec) => (
-                <tr key={rec.id} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="p-4 pl-6">
-                    <div className="flex items-center gap-3">
-                      <img src={rec.avatar} alt={rec.name} className="w-9 h-9 rounded-full object-cover border border-slate-200" />
-                      <div>
-                        <div className="font-bold text-slate-900 text-xs">{rec.name}</div>
-                        <div className="text-[10px] text-slate-400">{rec.email}</div>
+              {recruiters.map((rec) => {
+                const availableCredits = rec.remainingBalance !== undefined 
+                  ? rec.remainingBalance 
+                  : ((rec.allocatedCredits || 50) - (rec.totalCreditsUsed || 0));
+
+                return (
+                  <tr key={rec.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="p-4 pl-6">
+                      <div className="flex items-center gap-3">
+                        <img src={rec.avatar} alt={rec.name} className="w-9 h-9 rounded-full object-cover border border-slate-200" />
+                        <div>
+                          <div className="font-bold text-slate-900 text-xs">{rec.name}</div>
+                          <div className="text-[10px] text-slate-400">{rec.email}</div>
+                        </div>
                       </div>
-                    </div>
-                  </td>
+                    </td>
 
-                  <td className="p-4 font-bold text-slate-800">{rec.activeJobsCount} Active Jobs</td>
-                  <td className="p-4 font-semibold text-slate-700">{rec.profileViewsCount} views</td>
-                  <td className="p-4 font-semibold text-slate-700">{rec.resumeDownloadsCount} downloads</td>
+                    <td className="p-4 font-bold text-slate-800">{rec.activeJobsCount || 0} Active Jobs</td>
+                    <td className="p-4 font-semibold text-slate-700">{rec.profileViewsCount || 0} views</td>
+                    <td className="p-4 font-semibold text-slate-700">{rec.resumeDownloadsCount || 0} downloads</td>
 
-                  <td className="p-4 font-extrabold text-brand-orange-600">
-                    {rec.totalCreditsUsed} credits
-                  </td>
+                    <td className="p-4 font-extrabold text-brand-orange-600">
+                      {availableCredits} credits
+                    </td>
 
-                  <td className="p-4 text-right pr-6 space-x-2">
-                    <button
-                      onClick={() => setCreditModalUser(rec)}
-                      className="px-2.5 py-1 text-xs font-bold text-brand-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-lg"
-                    >
-                      + Allocate Credits
-                    </button>
+                    <td className="p-4 text-right pr-6 space-x-2">
+                      <button
+                        onClick={() => setCreditModalUser(rec)}
+                        className="px-2.5 py-1 text-xs font-bold text-brand-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-lg"
+                      >
+                        + Allocate Credits
+                      </button>
 
-                    <button
-                      onClick={() => handleRemoveRecruiter(rec.id, rec.name)}
-                      className="px-2.5 py-1 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg inline-flex items-center gap-1"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" /> Remove
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                      <button
+                        onClick={() => handleRemoveRecruiter(rec.id, rec.name)}
+                        className="px-2.5 py-1 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg inline-flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Remove
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

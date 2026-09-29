@@ -30,6 +30,8 @@ export interface RecruiterUser {
   profileViewsCount: number;
   resumeDownloadsCount: number;
   totalCreditsUsed: number;
+  allocatedCredits?: number;
+  remainingBalance?: number;
   createdAt: string;
 }
 

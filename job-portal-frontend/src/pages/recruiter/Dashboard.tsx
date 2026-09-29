@@ -18,13 +18,23 @@ import { INITIAL_JOBS, INITIAL_CANDIDATES, INITIAL_APPLICATIONS, INITIAL_INTERVI
 
 interface ContextType {
   creditAccount: OrganizationCreditAccount;
+  recruiterCredits?: number;
+  activeRecruiter?: {
+    id: string;
+    name: string;
+    email: string;
+    avatar: string;
+    remainingBalance?: number;
+  };
+  jobs?: any[];
 }
 
 export const RecruiterDashboard: React.FC = () => {
-  const { creditAccount } = useOutletContext<ContextType>();
+  const { creditAccount, recruiterCredits, activeRecruiter, jobs } = useOutletContext<ContextType>();
   const navigate = useNavigate();
 
-  const myJobs = INITIAL_JOBS.filter((j) => j.recruiterId === 'rec_1');
+  const myJobs = (jobs || INITIAL_JOBS).filter((j) => j.recruiterId === activeRecruiter?.id || j.recruiterName === activeRecruiter?.name || j.recruiterId === 'rec_1');
+  const availableCredits = recruiterCredits !== undefined ? recruiterCredits : (activeRecruiter?.remainingBalance !== undefined ? activeRecruiter.remainingBalance : 50);
 
   return (
     <div className="space-y-6">
@@ -36,9 +46,9 @@ export const RecruiterDashboard: React.FC = () => {
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-brand-orange-500 text-white uppercase tracking-wider">
               Recruiter Execution Workspace
             </span>
-            <h2 className="text-2xl font-extrabold tracking-tight">Elena Rostova 👋</h2>
+            <h2 className="text-2xl font-extrabold tracking-tight">{activeRecruiter?.name || 'Recruiter'} 👋</h2>
             <p className="text-xs text-slate-300">
-              Senior Technical Recruiter • ABC Recruitment Pvt Ltd
+              {activeRecruiter?.email || 'recruiter@abctech.com'} • ABC Recruitment Pvt Ltd
             </p>
           </div>
 
@@ -49,7 +59,7 @@ export const RecruiterDashboard: React.FC = () => {
             <div>
               <div className="text-[10px] font-bold text-slate-300 uppercase">Allocated Tokens</div>
               <div className="text-xl font-extrabold text-white">
-                {creditAccount.balance} <span className="text-xs font-normal text-slate-300">credits</span>
+                {availableCredits} <span className="text-xs font-normal text-slate-300">credits</span>
               </div>
             </div>
           </div>

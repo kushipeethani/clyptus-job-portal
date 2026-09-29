@@ -52,15 +52,18 @@ export const OrgAdminDashboard: React.FC = () => {
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
         <h3 className="font-bold text-slate-900 text-sm">Recent Recruiter Activity</h3>
         <div className="space-y-2">
-          {INITIAL_RECRUITERS.map((r) => (
-            <div key={r.id} className="p-3 bg-slate-50 rounded-xl flex items-center justify-between text-xs">
-              <div>
-                <span className="font-bold text-slate-900">{r.name}</span>
-                <span className="text-slate-400 text-[10px] block">{r.email}</span>
+          {INITIAL_RECRUITERS.map((r) => {
+            const avail = r.remainingBalance !== undefined ? r.remainingBalance : ((r.allocatedCredits || 50) - (r.totalCreditsUsed || 0));
+            return (
+              <div key={r.id} className="p-3 bg-slate-50 rounded-xl flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-bold text-slate-900">{r.name}</span>
+                  <span className="text-slate-400 text-[10px] block">{r.email}</span>
+                </div>
+                <span className="font-semibold text-slate-700">{r.activeJobsCount || 0} Active Jobs • <strong className="text-brand-orange-600">{avail} Credits Quota</strong></span>
               </div>
-              <span className="font-semibold text-slate-700">{r.activeJobsCount} Active Jobs • {r.totalCreditsUsed} Credits Consumed</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

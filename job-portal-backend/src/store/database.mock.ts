@@ -68,6 +68,20 @@ class MockDatabase {
       totalCreditsUsed: 22,
       allocatedCredits: 300,
       createdAt: '2026-09-08',
+    },
+    {
+      id: 'rec_kushi',
+      organizationId: 'org_abc_tech',
+      name: 'Kushi',
+      email: 'kushi.peethani222@gmail.com',
+      avatar: 'https://ui-avatars.com/api/?name=Kushi&background=F97316&color=fff',
+      status: 'ACTIVE',
+      activeJobsCount: 0,
+      profileViewsCount: 0,
+      resumeDownloadsCount: 0,
+      totalCreditsUsed: 0,
+      allocatedCredits: 50,
+      createdAt: '2026-09-29',
     }
   ];
 
