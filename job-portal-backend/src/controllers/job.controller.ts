@@ -96,24 +96,70 @@ export const getOffers = (req: Request, res: Response) => {
 };
 
 export const createOffer = (req: Request, res: Response) => {
-  const { candidateName, candidateEmail, role, annualCTC, joiningDate } = req.body;
+  const { candidateName, candidateEmail, role, annualCTC, joiningDate, createdBy, status } = req.body;
 
-  const newOffer: Offer = {
+  if (!candidateName || !role) {
+    return res.status(400).json({ success: false, message: 'Candidate name and role are required.' });
+  }
+
+  const initialStatus = status || 'PENDING_APPROVAL';
+
+  const newOffer: any = {
     id: `off_${Date.now()}`,
     organizationId: 'org_abc_tech',
     jobId: 'job_201',
-    jobTitle: role || 'Senior Software Engineer',
+    jobTitle: role,
     candidateId: `cand_${Date.now()}`,
-    candidateName: candidateName || 'Candidate',
+    candidateName,
     candidateEmail: candidateEmail || 'candidate@devmail.com',
-    role: role || 'Senior Software Engineer',
+    role,
     annualCTC: annualCTC || '₹10,00,000 INR',
     joiningDate: joiningDate || '2026-11-15',
-    status: 'SENT',
-    createdBy: 'Elena Rostova',
-    createdAt: new Date().toISOString().split('T')[0]
+    status: initialStatus,
+    createdBy: createdBy || 'Elena Rostova',
+    createdAt: new Date().toISOString().split('T')[0],
+    history: [
+      {
+        id: `hist_${Date.now()}`,
+        action: 'OFFER_CREATED',
+        actor: createdBy || 'Recruiter',
+        timestamp: new Date().toISOString(),
+        note: `Offer initiated with initial status ${initialStatus}`
+      }
+    ]
   };
 
   db.offers.unshift(newOffer);
-  res.status(201).json({ success: true, message: 'Offer letter created and sent.', data: newOffer });
+  res.status(201).json({ success: true, message: 'Offer letter created successfully.', data: newOffer });
+};
+
+export const updateOfferStatus = (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { status, actorName, note } = req.body;
+
+  const offer = db.offers.find((o: any) => o.id === id) as any;
+  if (!offer) {
+    return res.status(404).json({ success: false, message: 'Offer not found.' });
+  }
+
+  const previousStatus = offer.status;
+  offer.status = status;
+
+  if (!offer.history) {
+    offer.history = [];
+  }
+
+  offer.history.unshift({
+    id: `hist_${Date.now()}`,
+    action: `STATUS_CHANGED_TO_${status}`,
+    actor: actorName || 'Super Admin',
+    timestamp: new Date().toISOString(),
+    note: note || `Status transitioned from ${previousStatus} to ${status}`
+  });
+
+  res.json({
+    success: true,
+    message: `Offer status transitioned to ${status}.`,
+    data: offer
+  });
 };

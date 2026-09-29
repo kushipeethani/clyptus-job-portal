@@ -166,6 +166,7 @@ export interface Offer {
   status: OfferStatus;
   createdBy: string;
   createdAt: string;
+  history?: { id?: string; action?: string; actor?: string; timestamp?: string; note?: string }[];
 }
 
 export type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'CANCELLED';

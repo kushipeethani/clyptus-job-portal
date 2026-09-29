@@ -12,7 +12,7 @@ import { RecruiterTasks } from '../pages/recruiter/Tasks';
 import { RecruiterAITools } from '../pages/recruiter/AITools';
 import { RecruiterAnalytics } from '../pages/recruiter/Analytics';
 import { RecruiterNotifications } from '../pages/recruiter/Notifications';
-import { OrgSuperAdminOffers } from '../pages/organization-super-admin/Offers';
+import { RecruiterOffers } from '../pages/recruiter/Offers';
 import { CreditReports } from '../pages/organization-super-admin/CreditReports';
 import { Settings } from '../pages/organization/Settings';
 import { Jobs } from '../pages/organization/Jobs';
@@ -30,7 +30,7 @@ export const RecruiterRoutes: React.FC = () => {
         <Route path="applications" element={<RecruiterApplications />} />
         <Route path="ats" element={<RecruiterApplications />} />
         <Route path="interviews" element={<RecruiterInterviews />} />
-        <Route path="offers" element={<OrgSuperAdminOffers />} />
+        <Route path="offers" element={<RecruiterOffers />} />
         <Route path="messages" element={<RecruiterMessages />} />
         <Route path="tasks" element={<RecruiterTasks />} />
         <Route path="ai-tools" element={<RecruiterAITools />} />

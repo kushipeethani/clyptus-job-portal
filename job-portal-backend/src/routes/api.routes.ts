@@ -27,7 +27,8 @@ import {
   getApplications, 
   updateApplicationStage, 
   getOffers, 
-  createOffer 
+  createOffer,
+  updateOfferStatus
 } from '../controllers/job.controller';
 
 const router = Router();
@@ -70,5 +71,6 @@ router.patch('/applications/:id/stage', updateApplicationStage);
 // Offer Routes
 router.get('/offers', getOffers);
 router.post('/offers', createOffer);
+router.patch('/offers/:id/status', updateOfferStatus);
 
 export default router;
