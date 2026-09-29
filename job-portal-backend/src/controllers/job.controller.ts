@@ -45,6 +45,27 @@ export const createJob = (req: Request, res: Response) => {
   res.status(201).json({ success: true, message: 'Job created successfully.', data: newJob });
 };
 
+export const updateJob = (req: Request, res: Response) => {
+  const { id } = req.params;
+  const updates = req.body;
+
+  const index = db.jobs.findIndex(j => j.id === id);
+  if (index === -1) {
+    return res.status(404).json({ success: false, message: 'Job posting not found.' });
+  }
+
+  db.jobs[index] = {
+    ...db.jobs[index],
+    ...updates
+  };
+
+  res.json({
+    success: true,
+    message: 'Job posting updated successfully.',
+    data: db.jobs[index]
+  });
+};
+
 export const getApplications = (req: Request, res: Response) => {
   res.json({
     success: true,

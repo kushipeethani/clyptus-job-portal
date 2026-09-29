@@ -23,6 +23,7 @@ import {
 import { 
   getJobs, 
   createJob, 
+  updateJob,
   getApplications, 
   updateApplicationStage, 
   getOffers, 
@@ -62,6 +63,7 @@ router.post('/credits/consume', consumeCredits);
 // Jobs, Applications & ATS Pipeline Routes
 router.get('/jobs', getJobs);
 router.post('/jobs', createJob);
+router.put('/jobs/:id', updateJob);
 router.get('/applications', getApplications);
 router.patch('/applications/:id/stage', updateApplicationStage);
 
