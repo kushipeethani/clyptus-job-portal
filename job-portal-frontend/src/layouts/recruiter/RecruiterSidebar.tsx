@@ -15,6 +15,7 @@ import {
   Sparkles,
   Coins,
   BarChart3,
+  ShieldCheck,
   Bell,
   User
 } from 'lucide-react';
@@ -47,6 +48,7 @@ export const RecruiterSidebar: React.FC = () => {
         { label: 'AI Recruitment Tools', path: '/recruiter/ai-tools', icon: Sparkles, badge: 'Gemini' },
         { label: 'Token Usage', path: '/recruiter/tokens', icon: Coins },
         { label: 'Recruiter Analytics', path: '/recruiter/analytics', icon: BarChart3 },
+        { label: 'Activity Audit Logs', path: '/recruiter/audit', icon: ShieldCheck, badge: 'Server Audit' },
         { label: 'Notifications', path: '/recruiter/notifications', icon: Bell },
         { label: 'Profile & Settings', path: '/recruiter/settings', icon: User },
       ]

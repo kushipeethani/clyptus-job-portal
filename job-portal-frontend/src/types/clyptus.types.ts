@@ -191,6 +191,8 @@ export interface AuditLog {
   action: string;
   resource: string;
   resourceId: string;
+  dimension?: 'USER' | 'ROLE' | 'ACTION' | 'RESOURCE' | 'JOB' | 'CANDIDATE' | 'APPLICATION' | 'PAYMENT' | 'TOKEN' | 'SECURITY' | 'ATS' | 'OFFER' | 'INTERVIEW' | 'PERMISSION' | 'PRIVILEGED';
+  details?: string;
   timestamp: string;
   ip: string;
 }

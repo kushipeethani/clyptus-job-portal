@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Users, Briefcase, FileCheck, Coins, ShieldCheck, ChevronRight } from 'lucide-react';
-import { OrganizationCreditAccount } from '../../types/clyptus.types';
+import { OrganizationCreditAccount, RecruiterUser } from '../../types/clyptus.types';
 import { INITIAL_RECRUITERS, INITIAL_JOBS, INITIAL_APPLICATIONS } from '../../store/clyptus.store';
 
 interface ContextType {
@@ -9,7 +9,33 @@ interface ContextType {
 }
 
 export const OrgAdminDashboard: React.FC = () => {
-  const { creditAccount } = useOutletContext<ContextType>();
+  const { creditAccount: contextCreditAccount } = useOutletContext<ContextType>();
+  const [recruiters, setRecruiters] = useState<RecruiterUser[]>(INITIAL_RECRUITERS);
+  const [liveBalance, setLiveBalance] = useState<number>(contextCreditAccount?.balance || 1000);
+
+  const fetchLiveDashboardData = async () => {
+    try {
+      const recRes = await fetch('http://localhost:5000/api/v1/recruiters');
+      const recJson = await recRes.json();
+      if (recJson.success && recJson.data) {
+        setRecruiters(recJson.data);
+      }
+
+      const accRes = await fetch('http://localhost:5000/api/v1/credits/account');
+      const accJson = await accRes.json();
+      if (accJson.success && accJson.data) {
+        setLiveBalance(accJson.data.balance);
+      }
+    } catch (err) {
+      console.warn('Backend API offline.');
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveDashboardData();
+    const interval = setInterval(fetchLiveDashboardData, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -26,7 +52,7 @@ export const OrgAdminDashboard: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <span className="text-xs font-bold text-slate-500 uppercase">Recruiters</span>
-          <div className="text-2xl font-extrabold text-slate-900 mt-2">{INITIAL_RECRUITERS.length}</div>
+          <div className="text-2xl font-extrabold text-slate-900 mt-2">{recruiters.length}</div>
           <div className="text-[11px] text-slate-500 mt-1">Active Accounts</div>
         </div>
 
@@ -44,16 +70,19 @@ export const OrgAdminDashboard: React.FC = () => {
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <span className="text-xs font-bold text-slate-500 uppercase">Available Credits</span>
-          <div className="text-2xl font-extrabold text-brand-orange-600 mt-2">{creditAccount.balance}</div>
+          <div className="text-2xl font-extrabold text-brand-orange-600 mt-2">{liveBalance}</div>
           <div className="text-[11px] text-slate-500 mt-1">Org Credit Balance</div>
         </div>
       </div>
 
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-        <h3 className="font-bold text-slate-900 text-sm">Recent Recruiter Activity</h3>
+        <h3 className="font-bold text-slate-900 text-sm">Recent Recruiter Activity & Live Credit Quota</h3>
         <div className="space-y-2">
-          {INITIAL_RECRUITERS.map((r) => {
-            const avail = r.remainingBalance !== undefined ? r.remainingBalance : ((r.allocatedCredits || 50) - (r.totalCreditsUsed || 0));
+          {recruiters.map((r) => {
+            const avail = r.remainingBalance !== undefined 
+              ? r.remainingBalance 
+              : ((r.allocatedCredits || 50) - (r.totalCreditsUsed || 0));
+
             return (
               <div key={r.id} className="p-3 bg-slate-50 rounded-xl flex items-center justify-between text-xs">
                 <div>

@@ -8,7 +8,7 @@ import { Jobs } from '../pages/organization/Jobs';
 import { CandidateSearch } from '../pages/organization/CandidateSearch';
 import { CreditReports } from '../pages/organization-super-admin/CreditReports';
 import { OrgAdminOffers } from '../pages/admin/Offers';
-import { OrgSuperAdminAuditLogs } from '../pages/organization-super-admin/AuditLogs';
+import { OrgAdminAuditLogs } from '../pages/admin/AuditLogs';
 import { Settings } from '../pages/organization/Settings';
 
 export const OrgAdminRoutes: React.FC = () => {
@@ -25,7 +25,7 @@ export const OrgAdminRoutes: React.FC = () => {
         <Route path="interviews" element={<Jobs />} />
         <Route path="offers" element={<OrgAdminOffers />} />
         <Route path="tokens" element={<CreditReports />} />
-        <Route path="audit" element={<OrgSuperAdminAuditLogs />} />
+        <Route path="audit" element={<OrgAdminAuditLogs />} />
         <Route path="settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="dashboard" replace />} />
       </Route>

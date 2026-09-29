@@ -13,6 +13,7 @@ import { RecruiterAITools } from '../pages/recruiter/AITools';
 import { RecruiterAnalytics } from '../pages/recruiter/Analytics';
 import { RecruiterNotifications } from '../pages/recruiter/Notifications';
 import { RecruiterOffers } from '../pages/recruiter/Offers';
+import { RecruiterAuditLogs } from '../pages/recruiter/AuditLogs';
 import { CreditReports } from '../pages/organization-super-admin/CreditReports';
 import { Settings } from '../pages/organization/Settings';
 import { Jobs } from '../pages/organization/Jobs';
@@ -36,6 +37,7 @@ export const RecruiterRoutes: React.FC = () => {
         <Route path="ai-tools" element={<RecruiterAITools />} />
         <Route path="tokens" element={<CreditReports />} />
         <Route path="analytics" element={<RecruiterAnalytics />} />
+        <Route path="audit" element={<RecruiterAuditLogs />} />
         <Route path="notifications" element={<RecruiterNotifications />} />
         <Route path="settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="dashboard" replace />} />
