@@ -526,6 +526,21 @@ export const logAction = (
   });
 };
 
+export const getStoreCreditAccount = (): OrganizationCreditAccount => {
+  try {
+    const data = localStorage.getItem('clyptus_credit_account');
+    if (data) return JSON.parse(data);
+  } catch (err) {}
+  return INITIAL_CREDIT_ACCOUNT;
+};
+
+export const saveStoreCreditAccount = (account: OrganizationCreditAccount): void => {
+  try {
+    localStorage.setItem('clyptus_credit_account', JSON.stringify(account));
+    window.dispatchEvent(new CustomEvent('clyptus_store_updated', { detail: { type: 'CREDIT_ACCOUNT' } }));
+  } catch (err) {}
+};
+
 export const allocateCreditsToRecruiter = (recruiterId: string, additionalCredits: number, allocatorName: string = 'Super Admin'): RecruiterUser[] => {
   const recruiters = getStoreRecruiters();
   const updated = recruiters.map((rec) => {
@@ -555,6 +570,16 @@ export const allocateCreditsToRecruiter = (recruiterId: string, additionalCredit
   });
 
   saveStoreRecruiters(updated);
+
+  const currentAcc = getStoreCreditAccount();
+  const updatedAcc: OrganizationCreditAccount = {
+    ...currentAcc,
+    balance: currentAcc.balance + additionalCredits,
+    totalAllocated: currentAcc.totalAllocated + additionalCredits,
+  };
+  saveStoreCreditAccount(updatedAcc);
+
   return updated;
 };
+
 

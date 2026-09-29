@@ -2,12 +2,24 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { OrgAdminHeader } from './OrgAdminHeader';
 import { OrgAdminSidebar } from './OrgAdminSidebar';
-import { INITIAL_CREDIT_ACCOUNT } from '../../store/clyptus.store';
+import { INITIAL_CREDIT_ACCOUNT, getStoreCreditAccount } from '../../store/clyptus.store';
 import { CheckCircle2 } from 'lucide-react';
 
 export const OrgAdminLayout: React.FC = () => {
-  const [creditAccount, setCreditAccount] = useState(INITIAL_CREDIT_ACCOUNT);
+  const [creditAccount, setCreditAccount] = useState(getStoreCreditAccount());
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    const handleSync = () => {
+      setCreditAccount(getStoreCreditAccount());
+    };
+    window.addEventListener('clyptus_store_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('clyptus_store_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);

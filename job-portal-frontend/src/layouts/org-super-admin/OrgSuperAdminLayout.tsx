@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { OrgSuperAdminHeader } from './OrgSuperAdminHeader';
 import { OrgSuperAdminSidebar } from './OrgSuperAdminSidebar';
-import { INITIAL_CREDIT_ACCOUNT } from '../../store/clyptus.store';
+import { INITIAL_CREDIT_ACCOUNT, getStoreCreditAccount, saveStoreCreditAccount } from '../../store/clyptus.store';
 import { OrganizationCreditAccount } from '../../types/clyptus.types';
 import { CheckCircle2 } from 'lucide-react';
 
 export const OrgSuperAdminLayout: React.FC = () => {
-  const [creditAccount, setCreditAccount] = useState<OrganizationCreditAccount>(INITIAL_CREDIT_ACCOUNT);
+  const [creditAccount, setCreditAccount] = useState<OrganizationCreditAccount>(getStoreCreditAccount());
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Fetch live credit account balance from REST API backend
@@ -17,16 +17,27 @@ export const OrgSuperAdminLayout: React.FC = () => {
       const json = await res.json();
       if (json.success && json.data?.account) {
         setCreditAccount(json.data.account);
+        saveStoreCreditAccount(json.data.account);
+      } else {
+        setCreditAccount(getStoreCreditAccount());
       }
     } catch (err) {
-      console.warn('Backend REST API connection offline, utilizing local state.');
+      setCreditAccount(getStoreCreditAccount());
     }
   };
 
   useEffect(() => {
     fetchCreditAccount();
-    const interval = setInterval(fetchCreditAccount, 3000); // Polling every 3s for live updates
-    return () => clearInterval(interval);
+
+    const handleSync = () => {
+      setCreditAccount(getStoreCreditAccount());
+    };
+    window.addEventListener('clyptus_store_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('clyptus_store_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, []);
 
   const showToast = (msg: string) => {
