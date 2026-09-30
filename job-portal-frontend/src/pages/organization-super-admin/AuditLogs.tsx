@@ -113,27 +113,27 @@ export const OrgSuperAdminAuditLogs: React.FC = () => {
 
         <button
           onClick={handleExportCSV}
-          className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-2xl shadow-xs flex items-center gap-2 w-fit"
+          className="px-4 py-2.5 bg-brand-blue-600 hover:bg-brand-blue-700 text-white text-xs font-bold rounded-2xl shadow-xs flex items-center gap-2 w-fit cursor-pointer"
         >
-          <Download className="w-4 h-4 text-brand-orange-400" /> Export Audit Records (CSV)
+          <Download className="w-4 h-4 text-white" /> Export Audit Records (CSV)
         </button>
       </div>
 
       {/* Immutable Append-Only Guarantee Banner */}
-      <div className="p-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl border border-indigo-500/30 text-white flex items-center justify-between gap-4">
+      <div className="p-4 bg-indigo-50/80 rounded-3xl border border-indigo-200 text-slate-900 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md">
             <Lock className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="font-extrabold text-sm text-indigo-300">Append-Only Immutability Enforced</h4>
-            <p className="text-xs text-slate-300">
+            <h4 className="font-extrabold text-sm text-indigo-900">Append-Only Immutability Enforced</h4>
+            <p className="text-xs text-slate-600">
               Audit records are cryptographic and append-only. No user or Organization Super Admin can modify or delete log records.
             </p>
           </div>
         </div>
 
-        <span className="hidden sm:inline-block px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full text-[10px] font-black uppercase">
+        <span className="hidden sm:inline-block px-3 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-full text-[10px] font-black uppercase">
           Read-Only Ledger Active
         </span>
       </div>

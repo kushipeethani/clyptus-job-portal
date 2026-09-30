@@ -324,9 +324,9 @@ export const AdminManagement: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden">
-            <div className="p-6 bg-slate-900 text-white flex items-center justify-between">
-              <h3 className="font-bold text-base">{editingAdmin ? 'Edit Admin & RBAC Matrix' : 'Create Organization Admin'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
+            <div className="p-6 bg-slate-50 border-b border-slate-200 text-slate-900 flex items-center justify-between">
+              <h3 className="font-extrabold text-base">{editingAdmin ? 'Edit Admin & RBAC Matrix' : 'Create Organization Admin'}</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -345,7 +345,7 @@ export const AdminManagement: React.FC = () => {
                 </div>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="w-full py-2.5 bg-slate-900 text-white font-bold text-xs rounded-xl shadow-xs"
+                  className="w-full py-2.5 bg-brand-blue-600 hover:bg-brand-blue-700 text-white font-bold text-xs rounded-xl shadow-xs"
                 >
                   Done
                 </button>

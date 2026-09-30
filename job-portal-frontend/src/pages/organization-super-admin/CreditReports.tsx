@@ -99,20 +99,20 @@ export const CreditReports: React.FC = () => {
       </div>
 
       {/* Recruiter Credit Allocation Action Panel */}
-      <div className="bg-gradient-to-r from-slate-900 to-indigo-950 p-6 rounded-3xl text-white shadow-xl space-y-4">
+      <div className="bg-white p-6 rounded-3xl border border-slate-200 text-slate-900 shadow-md space-y-4">
         <div className="flex items-center gap-2">
           <Coins className="w-5 h-5 text-brand-orange-500" />
-          <h3 className="font-bold text-base">Allocate Credits to Recruiters</h3>
+          <h3 className="font-extrabold text-base">Allocate Credits to Recruiters</h3>
         </div>
-        <p className="text-xs text-slate-300">Top up candidate search & resume download credits for a specific recruiter or batch allocate to ALL recruiters simultaneously.</p>
+        <p className="text-xs text-slate-500">Top up candidate search & resume download credits for a specific recruiter or batch allocate to ALL recruiters simultaneously.</p>
 
         <form onSubmit={handleAllocateCredits} className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
           <div>
-            <label className="block text-[11px] font-bold uppercase text-slate-400 mb-1">Target Recruiter</label>
+            <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">Target Recruiter</label>
             <select
               value={selectedTarget}
               onChange={(e) => setSelectedTarget(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-white focus:ring-2 focus:ring-brand-orange-500 focus:outline-none"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-brand-orange-500 focus:outline-none"
             >
               <option value="ALL">✨ ALL Recruiters (Batch Allocation)</option>
               {recruiters.map((r) => (
@@ -124,14 +124,14 @@ export const CreditReports: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold uppercase text-slate-400 mb-1">Credits Amount per Recruiter</label>
+            <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">Credits Amount per Recruiter</label>
             <input
               type="number"
               min="1"
               required
               value={allocationAmount}
               onChange={(e) => setAllocationAmount(Number(e.target.value))}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-white focus:ring-2 focus:ring-brand-orange-500 focus:outline-none"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-brand-orange-500 focus:outline-none"
             />
           </div>
 
