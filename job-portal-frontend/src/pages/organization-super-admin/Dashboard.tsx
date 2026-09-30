@@ -47,33 +47,6 @@ export const OrgSuperAdminDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       
-      {/* Top White Banner */}
-      <div className="bg-white rounded-3xl p-6 text-slate-900 border border-slate-200 shadow-md relative overflow-hidden">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-          <div className="space-y-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-brand-blue-700 border border-blue-200 uppercase tracking-wider">
-              Organization Super Admin Portal
-            </span>
-            <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">ABC Recruitment Pvt Ltd</h2>
-            <p className="text-xs text-slate-500">
-              Manage organization admins, recruiters with credentials, credit quotas, and audit logs.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-            <div className="w-10 h-10 rounded-xl bg-brand-blue-600 text-white flex items-center justify-center shadow-md">
-              <Coins className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="text-[10px] font-bold text-slate-500 uppercase">Available Credits</div>
-              <div className="text-xl font-extrabold text-slate-900">
-                {liveAccount.balance.toLocaleString()} <span className="text-xs font-normal text-slate-500">credits</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* KPI Overview Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         

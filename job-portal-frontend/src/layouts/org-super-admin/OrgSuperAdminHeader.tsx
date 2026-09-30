@@ -19,13 +19,7 @@ export const OrgSuperAdminHeader: React.FC<HeaderProps> = ({ creditBalance }) =>
             C
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-extrabold text-slate-900 text-base">Clyptus</h1>
-              <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-blue-100 text-brand-blue-700 border border-blue-200">
-                Organization Super Admin Portal
-              </span>
-            </div>
-            <p className="text-xs text-slate-500">ABC Recruitment Pvt Ltd • Tenant ID: org_abc_tech</p>
+            <h1 className="font-extrabold text-slate-900 text-base">Clyptus</h1>
           </div>
         </div>
 
