@@ -81,7 +81,7 @@ export const AdminManagement: React.FC = () => {
     setFormPassword('');
     setFormConfirmPassword('');
     setGeneratedCreds(null);
-    setSelectedPermissions(['RECRUITER_MANAGEMENT', 'JOB_MANAGEMENT', 'APPLICATION_MANAGEMENT']);
+    setSelectedPermissions(['RECRUITER_MANAGEMENT', 'JOB_MANAGEMENT', 'CANDIDATE_MANAGEMENT', 'APPLICATION_MANAGEMENT', 'REPORTS', 'USER_MANAGEMENT']);
     setIsModalOpen(true);
   };
 
@@ -101,6 +101,30 @@ export const AdminManagement: React.FC = () => {
       setSelectedPermissions(selectedPermissions.filter((p) => p !== perm));
     } else {
       setSelectedPermissions([...selectedPermissions, perm]);
+    }
+  };
+
+  const handleDeleteAdmin = async (id: string, name: string) => {
+    if (confirm(`Are you sure you want to delete Admin account "${name}"? This action cannot be undone.`)) {
+      const updatedList = admins.filter(a => a.id !== id);
+      saveStoreAdmins(updatedList);
+      setAdmins(updatedList);
+
+      try {
+        await fetch(`http://localhost:5000/api/v1/admins/${id}`, { method: 'DELETE' });
+      } catch (err) {}
+
+      logAction(
+        'Super Admin',
+        'SUPER_ADMIN',
+        'ADMIN_DELETED',
+        'AdminUser',
+        id,
+        'USER',
+        `Deleted Organization Admin account for ${name}.`
+      );
+
+      showToast(`Deleted Organization Admin account: ${name}`);
     }
   };
 
@@ -277,10 +301,16 @@ export const AdminManagement: React.FC = () => {
                     <button
                       onClick={() => toggleStatus(admin.id, admin.status)}
                       className={`px-2.5 py-1 text-xs font-bold rounded-lg ${
-                        admin.status === 'ACTIVE' ? 'text-red-700 bg-red-50 hover:bg-red-100' : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
+                        admin.status === 'ACTIVE' ? 'text-amber-700 bg-amber-50 hover:bg-amber-100' : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
                       }`}
                     >
                       {admin.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteAdmin(admin.id, admin.name)}
+                      className="px-2.5 py-1 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 rounded-lg"
+                    >
+                      Delete
                     </button>
                   </td>
                 </tr>
@@ -374,25 +404,27 @@ export const AdminManagement: React.FC = () => {
                   </div>
                 )}
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-2">RBAC Permission Matrix</label>
-                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                    {ALL_PERMISSIONS.map((perm) => (
-                      <label key={perm.key} className="flex items-start gap-2.5 p-2 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={selectedPermissions.includes(perm.key)}
-                          onChange={() => togglePermission(perm.key)}
-                          className="mt-0.5 text-brand-blue-600 rounded focus:ring-brand-blue-500"
-                        />
-                        <div>
-                          <div className="text-xs font-bold text-slate-900">{perm.label}</div>
-                          <div className="text-[10px] text-slate-500">{perm.desc}</div>
-                        </div>
-                      </label>
-                    ))}
+                {editingAdmin && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-2">RBAC Permission Matrix</label>
+                    <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                      {ALL_PERMISSIONS.map((perm) => (
+                        <label key={perm.key} className="flex items-start gap-2.5 p-2 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedPermissions.includes(perm.key)}
+                            onChange={() => togglePermission(perm.key)}
+                            className="mt-0.5 text-brand-blue-600 rounded focus:ring-brand-blue-500"
+                          />
+                          <div>
+                            <div className="text-xs font-bold text-slate-900">{perm.label}</div>
+                            <div className="text-[10px] text-slate-500">{perm.desc}</div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="flex justify-end gap-2 pt-2">
                   <button

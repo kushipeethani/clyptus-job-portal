@@ -23,8 +23,8 @@ export const RecruiterLogin: React.FC = () => {
     const storeRecruiters = getStoreRecruiters();
     foundRecruiter = storeRecruiters.find((r) => r.email.trim().toLowerCase() === inputEmail);
 
-    // 2. Fallback to API check if backend server is available
-    if (!foundRecruiter) {
+    // 2. Fallback to API check only if store hasn't been initialized in localStorage
+    if (!foundRecruiter && !localStorage.getItem('clyptus_recruiters')) {
       try {
         const res = await fetch('http://localhost:5000/api/v1/recruiters');
         const json = await res.json();
@@ -34,23 +34,24 @@ export const RecruiterLogin: React.FC = () => {
       } catch (err) {}
     }
 
-    // 3. Strict verification: Only Admin or Super Admin created credentials are permitted to log in
+    // 3. Strict verification: Account must exist and not be deleted
     if (!foundRecruiter) {
-      setErrorMsg('Invalid recruiter credentials! Only accounts created by Organization Admin or Super Admin can log in.');
+      setErrorMsg('Recruiter account does not exist or has been deleted by Admin. Access denied.');
       setIsLoading(false);
       return;
     }
 
     // 4. Verify Account Status
     if (foundRecruiter.status === 'SUSPENDED' || foundRecruiter.status === 'INACTIVE') {
-      setErrorMsg('Your recruiter account is currently suspended or inactive. Please contact your Organization Admin.');
+      setErrorMsg('Your recruiter account is currently suspended by Admin. Access denied.');
       setIsLoading(false);
       return;
     }
 
-    // 5. Verify Password match if set on recruiter
-    if (foundRecruiter.password && password && foundRecruiter.password !== password) {
-      setErrorMsg('Invalid password for recruiter account. Please try again.');
+    // 5. Strict Password Verification
+    const expectedPassword = foundRecruiter.password || 'Clyptus@2026';
+    if (password !== expectedPassword) {
+      setErrorMsg('Invalid password entered. Access denied.');
       setIsLoading(false);
       return;
     }

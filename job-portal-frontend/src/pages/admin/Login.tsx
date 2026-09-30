@@ -23,8 +23,8 @@ export const OrgAdminLogin: React.FC = () => {
     const storeAdmins = getStoreAdmins();
     foundAdmin = storeAdmins.find((a) => a.email.trim().toLowerCase() === inputEmail);
 
-    // 2. Fallback to API check if backend is running
-    if (!foundAdmin) {
+    // 2. Fallback to API check only if store hasn't been initialized in localStorage
+    if (!foundAdmin && !localStorage.getItem('clyptus_admins')) {
       try {
         const res = await fetch('http://localhost:5000/api/v1/admins');
         const json = await res.json();
@@ -34,23 +34,24 @@ export const OrgAdminLogin: React.FC = () => {
       } catch (err) {}
     }
 
-    // 3. Strict verification: Only Super Admin created Admin accounts can log in
+    // 3. Strict verification: Account must exist and not be deleted
     if (!foundAdmin) {
-      setErrorMsg('Invalid Admin credentials! Only Organization Admin accounts created by Super Admin can log in.');
+      setErrorMsg('Organization Admin account does not exist or has been deleted by Super Admin. Access denied.');
       setIsLoading(false);
       return;
     }
 
-    // 4. Verify Account Status
+    // 4. Verify Account Status (Suspended by Super Admin)
     if (foundAdmin.status === 'SUSPENDED' || foundAdmin.status === 'INACTIVE') {
-      setErrorMsg('Your Admin account has been suspended by Super Admin. Access denied.');
+      setErrorMsg('Your Organization Admin account has been suspended by Super Admin. Access denied.');
       setIsLoading(false);
       return;
     }
 
-    // 5. Verify Password match if set on Admin user
-    if (foundAdmin.password && password && foundAdmin.password !== password) {
-      setErrorMsg('Invalid password for Organization Admin account.');
+    // 5. Strict Password Verification
+    const expectedPassword = foundAdmin.password || 'Admin@2026';
+    if (password !== expectedPassword) {
+      setErrorMsg('Invalid password entered. Access denied.');
       setIsLoading(false);
       return;
     }
