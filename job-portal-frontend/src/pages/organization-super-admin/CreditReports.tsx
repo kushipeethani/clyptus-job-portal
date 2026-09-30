@@ -91,7 +91,7 @@ export const CreditReports: React.FC = () => {
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <span className="text-xs font-bold text-slate-500 uppercase">Total Consumed</span>
-          <div className="text-2xl font-extrabold text-brand-orange-600 mt-1">
+          <div className="text-2xl font-extrabold text-slate-900 mt-1">
             -{creditAccount.totalConsumed.toLocaleString()} <span className="text-xs font-normal text-slate-500">credits</span>
           </div>
         </div>
@@ -101,7 +101,7 @@ export const CreditReports: React.FC = () => {
       {/* Recruiter Credit Allocation Action Panel */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200 text-slate-900 shadow-md space-y-4">
         <div className="flex items-center gap-2">
-          <Coins className="w-5 h-5 text-brand-orange-500" />
+          <Coins className="w-5 h-5 text-brand-blue-600" />
           <h3 className="font-extrabold text-base">Allocate Credits to Recruiters</h3>
         </div>
         <p className="text-xs text-slate-500">Top up candidate search & resume download credits for a specific recruiter or batch allocate to ALL recruiters simultaneously.</p>
@@ -112,7 +112,7 @@ export const CreditReports: React.FC = () => {
             <select
               value={selectedTarget}
               onChange={(e) => setSelectedTarget(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-brand-orange-500 focus:outline-none"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-brand-blue-500 focus:outline-none"
             >
               <option value="ALL">✨ ALL Recruiters (Batch Allocation)</option>
               {recruiters.map((r) => (
@@ -131,7 +131,7 @@ export const CreditReports: React.FC = () => {
               required
               value={allocationAmount}
               onChange={(e) => setAllocationAmount(Number(e.target.value))}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-brand-orange-500 focus:outline-none"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-brand-blue-500 focus:outline-none"
             />
           </div>
 
@@ -142,7 +142,7 @@ export const CreditReports: React.FC = () => {
               title={!canAllocateTokens ? 'Permission Disabled by Super Admin' : ''}
               className={`w-full py-2.5 px-4 text-xs font-extrabold rounded-xl shadow-lg transition-all flex items-center justify-center gap-1.5 ${
                 canAllocateTokens 
-                  ? 'bg-brand-orange-500 hover:bg-brand-orange-600 text-white cursor-pointer' 
+                  ? 'bg-brand-blue-600 hover:bg-brand-blue-700 text-white cursor-pointer' 
                   : 'bg-slate-700 text-slate-400 border border-slate-600 cursor-not-allowed opacity-60'
               }`}
             >
@@ -181,7 +181,7 @@ export const CreditReports: React.FC = () => {
                   <td className="p-4">
                     <span className="font-bold text-slate-800">{rec.resumeDownloadsCount}</span> downloads
                   </td>
-                  <td className="p-4 font-extrabold text-brand-orange-600">
+                  <td className="p-4 font-extrabold text-brand-blue-600">
                     {rec.totalCreditsUsed} credits
                   </td>
                 </tr>
@@ -215,7 +215,7 @@ export const CreditReports: React.FC = () => {
                   <td className="p-4 pl-6 font-mono font-bold text-slate-900">{tx.id}</td>
                   <td className="p-4 font-bold">
                     <span className={`px-2 py-0.5 rounded text-[10px] ${
-                      tx.credits > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'
+                      tx.credits > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'
                     }`}>
                       {tx.action}
                     </span>

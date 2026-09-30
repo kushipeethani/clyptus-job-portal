@@ -224,7 +224,7 @@ export const OrgSuperAdminInterviews: React.FC = () => {
       case 'RESCHEDULED':
         return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200">Rescheduled</span>;
       case 'PENDING_FEEDBACK':
-        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-orange-100 text-orange-800 border border-orange-200 animate-pulse">Pending Feedback</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200 animate-pulse">Pending Feedback</span>;
       case 'COMPLETED':
         return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">Completed</span>;
       case 'CANCELLED':
@@ -264,9 +264,9 @@ export const OrgSuperAdminInterviews: React.FC = () => {
           <span className="text-[10px] font-bold text-blue-700 uppercase">Upcoming</span>
           <div className="text-2xl font-extrabold text-brand-blue-700">{upcomingCount}</div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-orange-200 bg-orange-50/30 shadow-xs space-y-1">
-          <span className="text-[10px] font-bold text-orange-700 uppercase">Pending Feedback</span>
-          <div className="text-2xl font-extrabold text-brand-orange-600">{pendingFeedbackCount}</div>
+        <div className="bg-white p-4 rounded-2xl border border-amber-200 bg-amber-50/30 shadow-xs space-y-1">
+          <span className="text-[10px] font-bold text-amber-700 uppercase">Pending Feedback</span>
+          <div className="text-2xl font-extrabold text-amber-800">{pendingFeedbackCount}</div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-emerald-200 bg-emerald-50/30 shadow-xs space-y-1">
           <span className="text-[10px] font-bold text-emerald-800 uppercase">Completed</span>
@@ -464,7 +464,7 @@ export const OrgSuperAdminInterviews: React.FC = () => {
           <div className="bg-white rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden">
             <div className="p-6 bg-slate-900 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-brand-orange-500" />
+                <Calendar className="w-5 h-5 text-brand-blue-400" />
                 <h3 className="font-bold text-base">Schedule New Interview</h3>
               </div>
               <button onClick={() => setIsScheduleModalOpen(false)} className="text-slate-400 hover:text-white">
@@ -638,7 +638,7 @@ export const OrgSuperAdminInterviews: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-bold text-white bg-brand-orange-500 hover:bg-brand-orange-600 rounded-xl shadow-xs"
+                  className="px-5 py-2 text-xs font-bold text-white bg-brand-blue-600 hover:bg-brand-blue-700 rounded-xl shadow-xs"
                 >
                   Save Reschedule
                 </button>

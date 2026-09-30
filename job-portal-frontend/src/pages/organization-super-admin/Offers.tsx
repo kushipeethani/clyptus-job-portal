@@ -200,7 +200,7 @@ export const OrgSuperAdminOffers: React.FC = () => {
       case 'REJECTED':
         return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-red-100 text-red-800 border border-red-200">Rejected</span>;
       case 'EXPIRED':
-        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-orange-100 text-orange-800 border border-orange-200">Expired</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 border border-rose-200">Expired</span>;
       case 'WITHDRAWN':
         return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-100 text-purple-800 border border-purple-200">Withdrawn</span>;
       default:
@@ -258,12 +258,12 @@ export const OrgSuperAdminOffers: React.FC = () => {
         </div>
         <div 
           onClick={() => setStatusFilter('EXPIRED')}
-          className="bg-white p-4 rounded-2xl border border-orange-200 bg-orange-50/30 shadow-xs space-y-1 cursor-pointer hover:border-orange-400 transition-all"
+          className="bg-white p-4 rounded-2xl border border-rose-200 bg-rose-50/30 shadow-xs space-y-1 cursor-pointer hover:border-rose-400 transition-all"
         >
-          <span className="text-[10px] font-bold text-orange-700 uppercase flex items-center justify-between">
-            Expired Offers <Clock className="w-3.5 h-3.5 text-orange-600" />
+          <span className="text-[10px] font-bold text-rose-700 uppercase flex items-center justify-between">
+            Expired Offers <Clock className="w-3.5 h-3.5 text-rose-600" />
           </span>
-          <div className="text-2xl font-extrabold text-orange-600">{expiredCount}</div>
+          <div className="text-2xl font-extrabold text-rose-600">{expiredCount}</div>
         </div>
       </div>
 
@@ -339,7 +339,7 @@ export const OrgSuperAdminOffers: React.FC = () => {
 
                   <td className="p-4 font-bold text-slate-800">{offer.role || offer.jobTitle}</td>
 
-                  <td className="p-4 font-extrabold text-brand-orange-600">{offer.annualCTC}</td>
+                  <td className="p-4 font-extrabold text-brand-blue-600">{offer.annualCTC}</td>
 
                   <td className="p-4 text-slate-700 font-medium">{offer.joiningDate}</td>
 
@@ -426,7 +426,7 @@ export const OrgSuperAdminOffers: React.FC = () => {
           <div className="bg-white rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden">
             <div className="p-6 bg-slate-900 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Gift className="w-5 h-5 text-brand-orange-500" />
+                <Gift className="w-5 h-5 text-brand-blue-400" />
                 <h3 className="font-bold text-base">Create & Issue Candidate Offer</h3>
               </div>
               <button onClick={() => setIsCreateModalOpen(false)} className="text-slate-400 hover:text-white">

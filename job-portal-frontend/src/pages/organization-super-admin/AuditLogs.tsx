@@ -213,7 +213,7 @@ export const OrgSuperAdminAuditLogs: React.FC = () => {
                     <div className="font-bold text-slate-900">{log.userName}</div>
                     <span className={`inline-block mt-0.5 px-2 py-0.5 rounded text-[9px] font-black ${
                       log.role === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-800' :
-                      log.role === 'ORGANIZATION_ADMIN' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'
+                      log.role === 'ORGANIZATION_ADMIN' ? 'bg-blue-100 text-blue-800' : 'bg-indigo-100 text-indigo-800'
                     }`}>
                       {log.role}
                     </span>

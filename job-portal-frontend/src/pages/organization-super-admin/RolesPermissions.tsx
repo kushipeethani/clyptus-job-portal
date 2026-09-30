@@ -46,7 +46,7 @@ export const RolesPermissions: React.FC = () => {
       {/* Top Bar Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span className="text-[11px] font-black uppercase tracking-widest text-orange-600 block mb-1">
+          <span className="text-[11px] font-black uppercase tracking-widest text-brand-blue-600 block mb-1">
             ACCESS CONTROL
           </span>
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
@@ -59,7 +59,7 @@ export const RolesPermissions: React.FC = () => {
 
         <button
           onClick={handleSaveChanges}
-          className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-orange-600/20 transition-all flex items-center gap-1.5 w-fit"
+          className="px-6 py-2.5 bg-brand-blue-600 hover:bg-brand-blue-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 w-fit cursor-pointer"
         >
           <span>Save changes</span>
         </button>

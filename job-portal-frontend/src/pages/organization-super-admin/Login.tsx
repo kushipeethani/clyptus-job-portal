@@ -18,7 +18,7 @@ export const OrgSuperAdminLogin: React.FC = () => {
       {/* Top Header */}
       <header className="px-8 py-5 flex items-center justify-between relative z-10 bg-white border-b border-slate-200 shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand-orange-500 text-white flex items-center justify-center font-black text-xl shadow-md">
+          <div className="w-10 h-10 rounded-xl bg-brand-blue-600 text-white flex items-center justify-center font-black text-xl shadow-md">
             C
           </div>
           <span className="font-extrabold text-xl tracking-tight text-slate-900">Clyptus</span>
@@ -33,7 +33,7 @@ export const OrgSuperAdminLogin: React.FC = () => {
         <div className="bg-white p-8 rounded-3xl border border-slate-200 max-w-md w-full shadow-xl space-y-6">
           
           <div className="space-y-2 text-center">
-            <span className="px-3 py-1 rounded-full text-[10px] font-black bg-orange-100 text-brand-orange-700 border border-orange-200 uppercase tracking-wider">
+            <span className="px-3 py-1 rounded-full text-[10px] font-black bg-blue-100 text-brand-blue-700 border border-blue-200 uppercase tracking-wider">
               Tenant Super Admin Portal
             </span>
             <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Organization Super Admin Login</h2>
@@ -51,7 +51,7 @@ export const OrgSuperAdminLogin: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:ring-2 focus:ring-brand-orange-500 focus:outline-none"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:ring-2 focus:ring-brand-blue-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -65,14 +65,14 @@ export const OrgSuperAdminLogin: React.FC = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:ring-2 focus:ring-brand-orange-500 focus:outline-none"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 focus:ring-2 focus:ring-brand-blue-500 focus:outline-none"
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 bg-brand-orange-500 hover:bg-brand-orange-600 text-white text-xs font-extrabold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 mt-2 cursor-pointer"
+              className="w-full py-3 bg-brand-blue-600 hover:bg-brand-blue-700 text-white text-xs font-extrabold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 mt-2 cursor-pointer"
             >
               Login to Org Super Admin Portal <ArrowRight className="w-4 h-4" />
             </button>
@@ -84,7 +84,7 @@ export const OrgSuperAdminLogin: React.FC = () => {
                 setEmail('sarah.j@abctech.com');
                 navigate('/organization-super-admin/dashboard');
               }}
-              className="text-xs font-semibold text-brand-orange-600 hover:underline cursor-pointer"
+              className="text-xs font-semibold text-brand-blue-600 hover:underline cursor-pointer"
             >
               Demo Quick Login as Sarah Jenkins (Org Super Admin)
             </button>
