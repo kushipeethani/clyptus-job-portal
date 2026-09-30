@@ -26,7 +26,6 @@ export const OrgSuperAdminSidebar: React.FC = () => {
       title: 'Governance & People',
       items: [
         { label: 'Dashboard', path: '/organization-super-admin/dashboard', icon: LayoutDashboard },
-        { label: 'Organization Admins', path: '/organization-super-admin/admins', icon: UserCheck, badge: 'RBAC' },
         { label: 'Recruiters', path: '/organization-super-admin/recruiters', icon: Users, badge: 'Add/Remove' },
         { label: 'Roles & Permissions', path: '/organization-super-admin/roles', icon: ShieldAlert },
       ]

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { OrgAdminLayout } from '../layouts/org-admin/OrgAdminLayout';
-import { OrgAdminLogin } from '../pages/admin/Login';
+import { UnifiedLogin } from '../pages/auth/UnifiedLogin';
 import { OrgAdminDashboard } from '../pages/admin/Dashboard';
 import { AdminRecruiterManagement } from '../pages/admin/RecruiterManagement';
 import { Jobs } from '../pages/organization/Jobs';
@@ -16,7 +16,7 @@ import { Settings } from '../pages/organization/Settings';
 export const OrgAdminRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="login" element={<OrgAdminLogin />} />
+      <Route path="login" element={<UnifiedLogin />} />
       <Route element={<OrgAdminLayout />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<OrgAdminDashboard />} />

@@ -40,6 +40,7 @@ export interface RecruiterUser {
   recruiterRole?: string;
   avatar: string;
   status: UserStatus;
+  isAdmin?: boolean;
   activeJobsCount: number;
   profileViewsCount: number;
   resumeDownloadsCount: number;

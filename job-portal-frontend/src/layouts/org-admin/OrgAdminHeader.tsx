@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Coins, LogOut } from 'lucide-react';
+import { getStoreRecruiters } from '../../store/clyptus.store';
 
 interface HeaderProps {
   creditBalance: number;
@@ -8,6 +9,28 @@ interface HeaderProps {
 
 export const OrgAdminHeader: React.FC<HeaderProps> = ({ creditBalance }) => {
   const navigate = useNavigate();
+
+  const getActiveAdminInfo = () => {
+    try {
+      const saved = localStorage.getItem('clyptus_active_admin');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    const adminRec = getStoreRecruiters().find((r) => r.isAdmin);
+    if (adminRec) return adminRec;
+    return { name: 'Admin', email: 'admin@clyptus.com', avatar: 'https://ui-avatars.com/api/?name=Admin&background=2563EB&color=fff' };
+  };
+
+  const [adminUser, setAdminUser] = useState(getActiveAdminInfo());
+
+  useEffect(() => {
+    const handleSync = () => setAdminUser(getActiveAdminInfo());
+    window.addEventListener('clyptus_store_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('clyptus_store_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs">
@@ -45,18 +68,18 @@ export const OrgAdminHeader: React.FC<HeaderProps> = ({ creditBalance }) => {
 
           <div className="flex items-center gap-2.5">
             <img
-              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80"
+              src={adminUser.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"}
               alt="Org Admin"
               className="w-9 h-9 rounded-full object-cover border-2 border-brand-blue-600"
             />
             <div className="hidden sm:flex flex-col text-left">
-              <span className="text-xs font-extrabold text-slate-900">Marcus Vance</span>
+              <span className="text-xs font-extrabold text-slate-900">{adminUser.name}</span>
               <span className="text-[10px] font-bold text-brand-blue-700">Organization Admin</span>
             </div>
           </div>
 
           <button
-            onClick={() => navigate('/admin/login')}
+            onClick={() => navigate('/login')}
             className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors"
             title="Logout from Admin Portal"
           >

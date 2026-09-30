@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { RecruiterLayout } from '../layouts/recruiter/RecruiterLayout';
-import { RecruiterLogin } from '../pages/recruiter/Login';
+import { UnifiedLogin } from '../pages/auth/UnifiedLogin';
 import { RecruiterDashboard } from '../pages/recruiter/Dashboard';
 import { RecruiterCandidateSearch } from '../pages/recruiter/CandidateSearch';
 import { RecruiterShortlistedCandidates } from '../pages/recruiter/ShortlistedCandidates';
@@ -22,7 +22,7 @@ import { Jobs } from '../pages/organization/Jobs';
 export const RecruiterRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="login" element={<RecruiterLogin />} />
+      <Route path="login" element={<UnifiedLogin />} />
       <Route element={<RecruiterLayout />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<RecruiterDashboard />} />

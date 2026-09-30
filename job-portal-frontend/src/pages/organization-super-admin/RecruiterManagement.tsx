@@ -24,7 +24,7 @@ import {
   BadgeCheck
 } from 'lucide-react';
 import { RecruiterUser, ShortlistedCandidate } from '../../types/clyptus.types';
-import { INITIAL_RECRUITERS, getStoreRecruiters, saveStoreRecruiters, allocateCreditsToRecruiter, getStoreShortlistedCandidates, updateRecruiterDetails, logAction } from '../../store/clyptus.store';
+import { INITIAL_RECRUITERS, getStoreRecruiters, saveStoreRecruiters, allocateCreditsToRecruiter, getStoreShortlistedCandidates, updateRecruiterDetails, logAction, setSingleAdminRecruiter } from '../../store/clyptus.store';
 
 interface ContextType {
   showToast: (msg: string) => void;
@@ -272,6 +272,12 @@ export const RecruiterManagement: React.FC = () => {
     setCreditModalUser(null);
   };
 
+  const handleDesignateAdmin = (rec: RecruiterUser) => {
+    const updated = setSingleAdminRecruiter(rec.id, 'Organization Super Admin');
+    setRecruiters(updated);
+    showToast(`Designated ${rec.name} as the sole Organization Admin!`);
+  };
+
   return (
     <div className="space-y-6">
       
@@ -314,7 +320,7 @@ export const RecruiterManagement: React.FC = () => {
           <div className="p-4 bg-slate-900/90 rounded-2xl border border-slate-700 font-mono text-xs space-y-2">
             <div className="flex justify-between">
               <span className="text-slate-400">Portal Login URL:</span>
-              <strong className="text-brand-blue-400">http://localhost:3000/recruiter/login</strong>
+              <strong className="text-brand-blue-400">http://localhost:3000/login</strong>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">Recruiter Email:</span>
@@ -331,6 +337,30 @@ export const RecruiterManagement: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Designated Organization Admin Banner */}
+      <div className="bg-purple-50/80 border border-purple-200 rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-purple-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+            <ShieldCheck className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full border border-purple-200">
+                Single Admin Governance
+              </span>
+              <span className="text-xs text-slate-500 font-medium">(Only 1 recruiter can be designated as Admin)</span>
+            </div>
+            <div className="text-sm font-extrabold text-slate-900 mt-0.5">
+              Designated Admin: {recruiters.find(r => r.isAdmin)?.name ? (
+                <span className="text-purple-700 font-black">{recruiters.find(r => r.isAdmin)?.name} ({recruiters.find(r => r.isAdmin)?.email})</span>
+              ) : (
+                <span className="text-slate-400 italic">No recruiter designated as admin yet</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Recruiter Table */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
@@ -370,6 +400,11 @@ export const RecruiterManagement: React.FC = () => {
                         <div>
                           <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
                             {rec.name}
+                            {rec.isAdmin && (
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-purple-100 text-purple-800 border border-purple-200 flex items-center gap-0.5">
+                                <ShieldCheck className="w-3 h-3 text-purple-600" /> Admin
+                              </span>
+                            )}
                           </div>
                           <div className="text-[11px] text-slate-500 font-medium mt-0.5">
                             {rec.email}
@@ -441,6 +476,20 @@ export const RecruiterManagement: React.FC = () => {
                         >
                           + Allocate
                         </button>
+
+                        {rec.isAdmin ? (
+                          <span className="px-2.5 py-1 text-xs font-bold text-purple-800 bg-purple-100 border border-purple-300 rounded-lg inline-flex items-center gap-1">
+                            <ShieldCheck className="w-3 h-3 text-purple-600" /> Admin
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleDesignateAdmin(rec)}
+                            className="px-2.5 py-1 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg inline-flex items-center gap-1 transition-colors"
+                            title="Designate as sole Organization Admin"
+                          >
+                            <ShieldCheck className="w-3.5 h-3.5 text-purple-600" /> Make Admin
+                          </button>
+                        )}
 
                         <button
                           onClick={() => handleRemoveRecruiter(rec.id, rec.name)}

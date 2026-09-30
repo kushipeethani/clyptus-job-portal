@@ -17,7 +17,7 @@ export const RecruiterHeader: React.FC<HeaderProps> = ({ creditBalance, activeRe
 
   const handleLogout = () => {
     localStorage.removeItem('clyptus_active_recruiter');
-    navigate('/recruiter/login');
+    navigate('/login');
   };
 
   return (

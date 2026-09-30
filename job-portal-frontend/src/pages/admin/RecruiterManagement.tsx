@@ -318,8 +318,8 @@ export const AdminRecruiterManagement: React.FC = () => {
 
           <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 font-mono text-xs space-y-2">
             <div className="flex justify-between">
-              <span className="text-slate-400">Recruiter Login URL:</span>
-              <strong className="text-brand-blue-400">http://localhost:3000/recruiter/login</strong>
+              <span className="text-slate-400">Portal Login URL:</span>
+              <strong className="text-brand-blue-400">http://localhost:3000/login</strong>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">Recruiter Email:</span>

@@ -66,6 +66,7 @@ export const INITIAL_RECRUITERS: RecruiterUser[] = [
     recruiterRole: 'Tech Recruiter',
     avatar: 'https://ui-avatars.com/api/?name=Kushi&background=F97316&color=fff',
     status: 'ACTIVE',
+    isAdmin: true,
     activeJobsCount: 0,
     profileViewsCount: 0,
     resumeDownloadsCount: 0,
@@ -198,6 +199,42 @@ export const saveStoreRecruiters = (recruiters: RecruiterUser[]): void => {
     localStorage.setItem('clyptus_recruiters', JSON.stringify(recruiters));
     window.dispatchEvent(new CustomEvent('clyptus_store_updated', { detail: { type: 'RECRUITERS' } }));
   } catch (err) {}
+};
+
+export const setSingleAdminRecruiter = (recruiterId: string, actorName: string = 'Super Admin'): RecruiterUser[] => {
+  const recruiters = getStoreRecruiters();
+  const updated = recruiters.map((rec) => ({
+    ...rec,
+    isAdmin: rec.id === recruiterId,
+  }));
+  saveStoreRecruiters(updated);
+
+  const targetRec = updated.find(r => r.id === recruiterId);
+  if (targetRec) {
+    try {
+      localStorage.setItem('clyptus_active_admin', JSON.stringify({
+        id: targetRec.id,
+        name: targetRec.name,
+        email: targetRec.email,
+        avatar: targetRec.avatar,
+        role: 'ORGANIZATION_ADMIN',
+        status: targetRec.status,
+        isAdmin: true
+      }));
+    } catch (e) {}
+  }
+
+  logAction(
+    actorName,
+    'SUPER_ADMIN',
+    'ADMIN_DESIGNATED',
+    'RecruiterUser',
+    recruiterId,
+    'USER',
+    `Designated recruiter ${targetRec?.name || recruiterId} as the sole Organization Admin.`
+  );
+
+  return updated;
 };
 
 export const DEFAULT_ROLE_PERMISSIONS: RolePermissionRow[] = [
