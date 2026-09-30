@@ -19,11 +19,16 @@ import { AuditLogs } from '../pages/platform/AuditLogs';
 import { Security } from '../pages/platform/Security';
 import { Settings } from '../pages/platform/Settings';
 
+import { OrgSuperAdminRoutes } from './org-super-admin.routes';
+
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
       {/* PUBLIC AUTH ROUTE */}
       <Route path="/platform/login" element={<Login />} />
+
+      {/* ORGANIZATION SUPER ADMIN PORTAL ROUTE */}
+      <Route path="/organization-super-admin/*" element={<OrgSuperAdminRoutes />} />
 
       {/* PROTECTED PLATFORM ADMIN & SUPER ADMIN PORTAL */}
       <Route element={<ProtectedRoute />}>
