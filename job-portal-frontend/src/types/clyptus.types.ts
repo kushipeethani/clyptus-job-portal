@@ -13,6 +13,7 @@ export interface AdminUser {
   organizationId: string;
   name: string;
   email: string;
+  password?: string;
   avatar: string;
   status: UserStatus;
   permissions: AdminPermission[];

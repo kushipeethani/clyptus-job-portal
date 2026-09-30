@@ -40,7 +40,19 @@ export const INITIAL_CREDIT_ACCOUNT: OrganizationCreditAccount = {
   totalConsumed: 0,
 };
 
-export const INITIAL_ADMINS: AdminUser[] = [];
+export const INITIAL_ADMINS: AdminUser[] = [
+  {
+    id: 'adm_1',
+    organizationId: 'org_abc_tech',
+    name: 'Marcus Vance',
+    email: 'marcus.v@abctech.com',
+    password: 'Admin@2026',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
+    status: 'ACTIVE',
+    permissions: ['RECRUITER_MANAGEMENT', 'JOB_MANAGEMENT', 'CANDIDATE_MANAGEMENT', 'APPLICATION_MANAGEMENT', 'REPORTS', 'USER_MANAGEMENT'],
+    createdAt: '2026-09-01',
+  }
+];
 
 export const INITIAL_RECRUITERS: RecruiterUser[] = [
   {
@@ -156,6 +168,21 @@ export const INITIAL_INVITATIONS: Invitation[] = [];
 export const INITIAL_AUDIT_LOGS: AuditLog[] = [];
 
 // Helper functions for Reactive Store Sync across Portals
+
+export const getStoreAdmins = (): AdminUser[] => {
+  try {
+    const data = localStorage.getItem('clyptus_admins');
+    if (data) return JSON.parse(data);
+  } catch (err) {}
+  return INITIAL_ADMINS;
+};
+
+export const saveStoreAdmins = (admins: AdminUser[]): void => {
+  try {
+    localStorage.setItem('clyptus_admins', JSON.stringify(admins));
+    window.dispatchEvent(new CustomEvent('clyptus_store_updated', { detail: { type: 'ADMINS' } }));
+  } catch (err) {}
+};
 
 export const getStoreRecruiters = (): RecruiterUser[] => {
   try {

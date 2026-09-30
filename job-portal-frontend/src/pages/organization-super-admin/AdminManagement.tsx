@@ -12,7 +12,7 @@ import {
   Lock
 } from 'lucide-react';
 import { AdminUser, AdminPermission } from '../../types/clyptus.types';
-import { INITIAL_ADMINS } from '../../store/clyptus.store';
+import { INITIAL_ADMINS, getStoreAdmins, saveStoreAdmins, logAction } from '../../store/clyptus.store';
 
 interface ContextType {
   showToast: (msg: string) => void;
@@ -29,7 +29,7 @@ const ALL_PERMISSIONS: { key: AdminPermission; label: string; desc: string }[] =
 
 export const AdminManagement: React.FC = () => {
   const { showToast } = useOutletContext<ContextType>();
-  const [admins, setAdmins] = useState<AdminUser[]>(INITIAL_ADMINS);
+  const [admins, setAdmins] = useState<AdminUser[]>(() => getStoreAdmins());
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -38,21 +38,26 @@ export const AdminManagement: React.FC = () => {
 
   const [formName, setFormName] = useState('');
   const [formEmail, setFormEmail] = useState('');
+  const [formPassword, setFormPassword] = useState('');
+  const [formConfirmPassword, setFormConfirmPassword] = useState('');
   const [selectedPermissions, setSelectedPermissions] = useState<AdminPermission[]>([
     'RECRUITER_MANAGEMENT', 'JOB_MANAGEMENT', 'APPLICATION_MANAGEMENT'
   ]);
 
-  // Fetch admins from backend API
+  // Fetch admins from backend API or reactive store
   const fetchAdmins = async () => {
     try {
       setIsLoading(true);
       const res = await fetch('http://localhost:5000/api/v1/admins');
       const json = await res.json();
-      if (json.success && json.data) {
+      if (json.success && json.data && json.data.length > 0) {
         setAdmins(json.data);
+        saveStoreAdmins(json.data);
+      } else {
+        setAdmins(getStoreAdmins());
       }
     } catch (err) {
-      console.warn('Backend API connection offline, utilizing stored state.');
+      setAdmins(getStoreAdmins());
     } finally {
       setIsLoading(false);
     }
@@ -60,12 +65,21 @@ export const AdminManagement: React.FC = () => {
 
   useEffect(() => {
     fetchAdmins();
+    const handleSync = () => setAdmins(getStoreAdmins());
+    window.addEventListener('clyptus_store_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('clyptus_store_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, []);
 
   const handleOpenCreateModal = () => {
     setEditingAdmin(null);
     setFormName('');
     setFormEmail('');
+    setFormPassword('');
+    setFormConfirmPassword('');
     setGeneratedCreds(null);
     setSelectedPermissions(['RECRUITER_MANAGEMENT', 'JOB_MANAGEMENT', 'APPLICATION_MANAGEMENT']);
     setIsModalOpen(true);
@@ -75,6 +89,8 @@ export const AdminManagement: React.FC = () => {
     setEditingAdmin(admin);
     setFormName(admin.name);
     setFormEmail(admin.email);
+    setFormPassword('');
+    setFormConfirmPassword('');
     setGeneratedCreds(null);
     setSelectedPermissions(admin.permissions);
     setIsModalOpen(true);
@@ -90,69 +106,94 @@ export const AdminManagement: React.FC = () => {
 
   const handleSaveAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (editingAdmin) {
+      // Editing Admin RBAC Permissions
+      const updatedAdmins = admins.map(a => a.id === editingAdmin.id ? { ...a, permissions: selectedPermissions } : a);
+      saveStoreAdmins(updatedAdmins);
+      setAdmins(updatedAdmins);
+
       try {
-        const res = await fetch(`http://localhost:5000/api/v1/admins/${editingAdmin.id}/permissions`, {
+        await fetch(`http://localhost:5000/api/v1/admins/${editingAdmin.id}/permissions`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ permissions: selectedPermissions })
         });
-        const json = await res.json();
-        if (json.success) {
-          fetchAdmins();
-          showToast(`Updated Admin permissions for ${formName}!`);
-        }
-      } catch (err) {
-        setAdmins(prev => prev.map(a => a.id === editingAdmin.id ? { ...a, permissions: selectedPermissions } : a));
-        showToast(`Updated Admin permissions for ${formName}!`);
-      }
+      } catch (err) {}
+
+      showToast(`Updated Admin permissions for ${formName}!`);
       setIsModalOpen(false);
     } else {
+      // Creating New Admin Account
+      if (formPassword && formConfirmPassword && formPassword !== formConfirmPassword) {
+        showToast('Passwords do not match! Please confirm your password.');
+        return;
+      }
+
+      const assignedPassword = formPassword || 'Admin@2026';
+      const newAdmin: AdminUser = {
+        id: `adm_${Date.now()}`,
+        organizationId: 'org_abc_tech',
+        name: formName,
+        email: formEmail,
+        password: assignedPassword,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formName)}&background=0D8ABC&color=fff`,
+        status: 'ACTIVE',
+        permissions: selectedPermissions,
+        createdAt: new Date().toISOString().split('T')[0],
+      };
+
+      const updatedList = [newAdmin, ...getStoreAdmins()];
+      saveStoreAdmins(updatedList);
+      setAdmins(updatedList);
+
       try {
-        const res = await fetch('http://localhost:5000/api/v1/admins', {
+        await fetch('http://localhost:5000/api/v1/admins', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: formName,
             email: formEmail,
+            password: assignedPassword,
             permissions: selectedPermissions
           })
         });
-        const json = await res.json();
-        if (json.success) {
-          fetchAdmins();
-          if (json.generatedCredentials) {
-            setGeneratedCreds({
-              email: json.generatedCredentials.email,
-              tempPass: json.generatedCredentials.temporaryPassword
-            });
-          }
-          showToast(`Created new Organization Admin: ${formName}!`);
-        }
-      } catch (err) {
-        const newAdmin: AdminUser = {
-          id: `adm_${Date.now()}`,
-          organizationId: 'org_abc_tech',
-          name: formName,
-          email: formEmail,
-          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formName)}&background=0D8ABC&color=fff`,
-          status: 'ACTIVE',
-          permissions: selectedPermissions,
-          createdAt: new Date().toISOString().split('T')[0],
-        };
-        setAdmins([...admins, newAdmin]);
-        showToast(`Created new Organization Admin: ${formName}!`);
-        setIsModalOpen(false);
-      }
+      } catch (err) {}
+
+      setGeneratedCreds({
+        email: formEmail,
+        tempPass: assignedPassword
+      });
+
+      logAction(
+        'Super Admin',
+        'SUPER_ADMIN',
+        'ADMIN_CREATED',
+        'AdminUser',
+        newAdmin.id,
+        'USER',
+        `Created new Organization Admin account for ${formName} (${formEmail}).`
+      );
+
+      showToast(`Created new Organization Admin: ${formName}!`);
     }
   };
 
   const toggleStatus = async (id: string, currentStatus: string) => {
-    const nextStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
-    setAdmins((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: nextStatus as any } : a))
-    );
-    showToast(`Updated Admin status to ${nextStatus}`);
+    const newStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+    const updatedList = admins.map(a => a.id === id ? { ...a, status: newStatus as any } : a);
+    saveStoreAdmins(updatedList);
+    setAdmins(updatedList);
+
+    try {
+      await fetch(`http://localhost:5000/api/v1/admins/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+    } catch (err) {}
+
+    showToast(`Updated Admin account status to ${newStatus}`);
   };
 
   return (
@@ -161,32 +202,32 @@ export const AdminManagement: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Organization Admin Governance</h2>
-          <p className="text-xs text-slate-500">Create, edit, suspend admins and configure permission-based RBAC matrices</p>
+          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Organization Admin Management</h2>
+          <p className="text-xs text-slate-500">Create Admin credentials with passwords, manage active status, and set granular RBAC permissions</p>
         </div>
 
         <button
           onClick={handleOpenCreateModal}
           className="px-4 py-2.5 bg-brand-blue-600 hover:bg-brand-blue-700 text-white text-xs font-bold rounded-2xl shadow-sm flex items-center gap-1.5 w-fit"
         >
-          <UserPlus className="w-4 h-4" /> Create New Admin
+          <UserPlus className="w-4 h-4" /> Create New Organization Admin
         </button>
       </div>
 
-      {/* Admin Table */}
+      {/* Admins Table */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="font-bold text-slate-900 text-sm">Active Admins ({admins.length})</h3>
-          <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-            Live REST Backend Connected
-          </span>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-brand-blue-600" />
+            <h3 className="font-bold text-slate-900 text-sm">Active Organization Admins ({admins.length})</h3>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100">
               <tr>
-                <th className="p-4 pl-6">Admin Name</th>
+                <th className="p-4 pl-6">Admin Name & Email</th>
                 <th className="p-4">Assigned RBAC Permissions</th>
                 <th className="p-4">Status</th>
                 <th className="p-4">Created Date</th>
@@ -210,7 +251,7 @@ export const AdminManagement: React.FC = () => {
                     <div className="flex flex-wrap gap-1 max-w-md">
                       {admin.permissions.map((perm) => (
                         <span key={perm} className="px-2 py-0.5 bg-blue-50 text-brand-blue-700 border border-blue-200 rounded text-[10px] font-bold">
-                          {perm.replace('_', ' ')}
+                          {perm.replace(/_/g, ' ')}
                         </span>
                       ))}
                     </div>
@@ -249,7 +290,7 @@ export const AdminManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Admin Modal */}
+      {/* Admin Create / Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden">
@@ -265,11 +306,11 @@ export const AdminManagement: React.FC = () => {
                 <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2">
                   <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>Admin Credentials Generated Successfully</span>
+                    <span>Admin Credentials Created Successfully</span>
                   </div>
                   <div className="text-xs text-slate-700 space-y-1 pt-1 font-mono">
                     <div><strong>Email:</strong> {generatedCreds.email}</div>
-                    <div><strong>Temporary Password:</strong> <span className="bg-white px-2 py-0.5 rounded border border-emerald-300 font-bold">{generatedCreds.tempPass}</span></div>
+                    <div><strong>Assigned Password:</strong> <span className="bg-white px-2 py-0.5 rounded border border-emerald-300 font-bold text-emerald-800">{generatedCreds.tempPass}</span></div>
                   </div>
                 </div>
                 <button
@@ -286,6 +327,7 @@ export const AdminManagement: React.FC = () => {
                   <input
                     type="text"
                     required
+                    placeholder="e.g. Marcus Vance"
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-blue-500 focus:outline-none"
@@ -297,15 +339,44 @@ export const AdminManagement: React.FC = () => {
                   <input
                     type="email"
                     required
+                    placeholder="e.g. marcus.v@abctech.com"
                     value={formEmail}
                     onChange={(e) => setFormEmail(e.target.value)}
                     className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-blue-500 focus:outline-none"
                   />
                 </div>
 
+                {!editingAdmin && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Set Account Password</label>
+                      <input
+                        type="password"
+                        required
+                        placeholder="Set Admin password..."
+                        value={formPassword}
+                        onChange={(e) => setFormPassword(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-brand-blue-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Confirm Account Password</label>
+                      <input
+                        type="password"
+                        required
+                        placeholder="Confirm password..."
+                        value={formConfirmPassword}
+                        onChange={(e) => setFormConfirmPassword(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-brand-blue-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-2">RBAC Permission Matrix</label>
-                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
                     {ALL_PERMISSIONS.map((perm) => (
                       <label key={perm.key} className="flex items-start gap-2.5 p-2 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
                         <input
