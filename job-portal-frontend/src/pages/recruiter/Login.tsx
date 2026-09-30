@@ -109,19 +109,6 @@ export const RecruiterLogin: React.FC = () => {
           )}
 
           <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">Organization Tenant ID</label>
-              <div className="relative">
-                <Building2 className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
-                <input
-                  type="text"
-                  required
-                  value={tenantId}
-                  onChange={(e) => setTenantId(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-xs font-mono text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                />
-              </div>
-            </div>
 
             <div>
               <label className="block text-xs font-bold text-slate-300 mb-1">Recruiter Email</label>
