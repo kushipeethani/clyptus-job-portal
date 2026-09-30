@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
-import { Coins, Eye, Download, PlusCircle, CheckCircle2, Users } from 'lucide-react';
+import { useOutletContext, useLocation } from 'react-router-dom';
+import { Coins, Eye, Download, PlusCircle, CheckCircle2, Users, Lock } from 'lucide-react';
 import { OrganizationCreditAccount, CreditTransaction, RecruiterUser } from '../../types/clyptus.types';
-import { getStoreCreditAccount, getStoreRecruiters, getStoreCreditTransactions, allocateCreditsToRecruiter } from '../../store/clyptus.store';
+import { getStoreCreditAccount, getStoreRecruiters, getStoreCreditTransactions, allocateCreditsToRecruiter, checkCurrentRolePermission } from '../../store/clyptus.store';
 
 interface ContextType {
   creditAccount: OrganizationCreditAccount;
@@ -12,6 +12,8 @@ interface ContextType {
 
 export const CreditReports: React.FC = () => {
   const { creditAccount, setCreditAccount, showToast } = useOutletContext<ContextType>();
+  const location = useLocation();
+  const canAllocateTokens = checkCurrentRolePermission(location.pathname, 'p7');
   const [recruiters, setRecruiters] = useState<RecruiterUser[]>(getStoreRecruiters());
   const [transactions, setTransactions] = useState<CreditTransaction[]>(getStoreCreditTransactions());
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -136,7 +138,13 @@ export const CreditReports: React.FC = () => {
           <div className="flex items-end">
             <button
               type="submit"
-              className="w-full py-2.5 px-4 bg-brand-orange-500 hover:bg-brand-orange-600 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-1.5"
+              disabled={!canAllocateTokens}
+              title={!canAllocateTokens ? 'Permission Disabled by Super Admin' : ''}
+              className={`w-full py-2.5 px-4 text-xs font-extrabold rounded-xl shadow-lg transition-all flex items-center justify-center gap-1.5 ${
+                canAllocateTokens 
+                  ? 'bg-brand-orange-500 hover:bg-brand-orange-600 text-white cursor-pointer' 
+                  : 'bg-slate-700 text-slate-400 border border-slate-600 cursor-not-allowed opacity-60'
+              }`}
             >
               <PlusCircle className="w-4 h-4" /> {selectedTarget === 'ALL' ? `Allocate +${allocationAmount} to ALL` : `Allocate +${allocationAmount} Credits`}
             </button>

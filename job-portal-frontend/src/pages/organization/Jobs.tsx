@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useLocation } from 'react-router-dom';
 import { 
   Briefcase, 
   Users, 
@@ -24,12 +24,13 @@ import {
   RefreshCw,
   UserPlus,
   Eye,
-  Filter
+  Filter,
+  Lock
 } from 'lucide-react';
 import { OrgRole, CandidateApplication, ApplicationStage } from '../../types/organization.types';
 import { Job, RecruiterUser } from '../../types/clyptus.types';
 import { INITIAL_JOBS, INITIAL_CANDIDATES } from '../../store/organization.store';
-import { getStoreJobs, saveStoreJobs, createJobInStore, updateJobInStore, getStoreRecruiters } from '../../store/clyptus.store';
+import { getStoreJobs, saveStoreJobs, createJobInStore, updateJobInStore, getStoreRecruiters, checkCurrentRolePermission } from '../../store/clyptus.store';
 
 interface ContextType {
   currentRole: OrgRole;
@@ -50,6 +51,10 @@ const STAGES: { key: ApplicationStage; label: string; color: string }[] = [
 export const Jobs: React.FC = () => {
   const context = useOutletContext<ContextType>();
   const showToast = context?.showToast || ((msg: string) => alert(msg));
+  const location = useLocation();
+
+  const canViewJobs = checkCurrentRolePermission(location.pathname, 'p1');
+  const canCreateEditJobs = checkCurrentRolePermission(location.pathname, 'p2');
 
   // Store state
   const [jobsList, setJobsList] = useState<Job[]>(getStoreJobs());
@@ -276,6 +281,20 @@ export const Jobs: React.FC = () => {
     showToast(`Reassigned job to recruiter ${rec.name}!`);
   };
 
+  if (!canViewJobs) {
+    return (
+      <div className="p-12 bg-white border border-slate-200 rounded-3xl text-center space-y-3 shadow-xs my-6">
+        <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
+          <Lock className="w-6 h-6" />
+        </div>
+        <h3 className="text-base font-extrabold text-slate-900">View Organization Jobs Restricted</h3>
+        <p className="text-xs text-slate-500 max-w-md mx-auto">
+          Viewing organization jobs has been disabled for your role by the Organization Super Admin in the Roles & Permissions Matrix.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       
@@ -289,8 +308,20 @@ export const Jobs: React.FC = () => {
         </div>
 
         <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="px-4 py-2.5 bg-brand-blue-600 hover:bg-brand-blue-700 text-white text-xs font-bold rounded-2xl shadow-sm flex items-center gap-1.5 w-fit"
+          disabled={!canCreateEditJobs}
+          onClick={() => {
+            if (!canCreateEditJobs) {
+              showToast('Permission Restricted: Job creation/editing has been disabled by Super Admin.');
+              return;
+            }
+            setIsCreateModalOpen(true);
+          }}
+          title={!canCreateEditJobs ? 'Permission Disabled by Super Admin' : 'Create new job posting'}
+          className={`px-4 py-2.5 text-xs font-bold rounded-2xl shadow-sm flex items-center gap-1.5 w-fit ${
+            canCreateEditJobs
+              ? 'bg-brand-blue-600 hover:bg-brand-blue-700 text-white cursor-pointer'
+              : 'bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed opacity-60'
+          }`}
         >
           <PlusCircle className="w-4 h-4" /> Create & Post New Job
         </button>

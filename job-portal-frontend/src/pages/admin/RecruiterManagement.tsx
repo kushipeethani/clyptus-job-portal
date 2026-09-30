@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useLocation } from 'react-router-dom';
 import { 
   Users, 
   UserPlus, 
@@ -18,7 +18,7 @@ import {
   UserCheck
 } from 'lucide-react';
 import { RecruiterUser, ShortlistedCandidate } from '../../types/clyptus.types';
-import { INITIAL_RECRUITERS, getStoreRecruiters, saveStoreRecruiters, allocateCreditsToRecruiter, getStoreShortlistedCandidates, updateRecruiterDetails, logAction } from '../../store/clyptus.store';
+import { INITIAL_RECRUITERS, getStoreRecruiters, saveStoreRecruiters, allocateCreditsToRecruiter, getStoreShortlistedCandidates, updateRecruiterDetails, logAction, checkCurrentRolePermission } from '../../store/clyptus.store';
 
 interface ContextType {
   showToast: (msg: string) => void;
@@ -26,6 +26,8 @@ interface ContextType {
 
 export const AdminRecruiterManagement: React.FC = () => {
   const { showToast } = useOutletContext<ContextType>();
+  const location = useLocation();
+  const canManageTeam = checkCurrentRolePermission(location.pathname, 'p6');
   const [recruiters, setRecruiters] = useState<RecruiterUser[]>(getStoreRecruiters());
 
   // Add Recruiter Modal State
@@ -274,8 +276,20 @@ export const AdminRecruiterManagement: React.FC = () => {
         </div>
 
         <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="px-4 py-2.5 bg-brand-blue-600 hover:bg-brand-blue-700 text-white text-xs font-bold rounded-2xl shadow-sm flex items-center gap-1.5 w-fit"
+          disabled={!canManageTeam}
+          onClick={() => {
+            if (!canManageTeam) {
+              showToast('Permission Restricted: Managing team member access has been disabled by Super Admin.');
+              return;
+            }
+            setIsAddModalOpen(true);
+          }}
+          title={!canManageTeam ? 'Permission Disabled by Super Admin' : 'Add new recruiter'}
+          className={`px-4 py-2.5 text-xs font-bold rounded-2xl shadow-sm flex items-center gap-1.5 w-fit ${
+            canManageTeam 
+              ? 'bg-brand-blue-600 hover:bg-brand-blue-700 text-white cursor-pointer' 
+              : 'bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed opacity-60'
+          }`}
         >
           <UserPlus className="w-4 h-4" /> Add Recruiter (Create Credentials)
         </button>

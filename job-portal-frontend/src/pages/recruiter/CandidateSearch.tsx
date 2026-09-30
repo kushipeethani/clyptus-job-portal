@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useLocation } from 'react-router-dom';
 import { 
   UserSearch, 
   Search, 
@@ -17,7 +17,7 @@ import {
   Star
 } from 'lucide-react';
 import { Candidate, OrganizationCreditAccount, ShortlistedCandidate } from '../../types/clyptus.types';
-import { INITIAL_CANDIDATES, consumeCreditsFromRecruiter, getStoreShortlistedCandidates, toggleShortlistCandidate } from '../../store/clyptus.store';
+import { INITIAL_CANDIDATES, consumeCreditsFromRecruiter, getStoreShortlistedCandidates, toggleShortlistCandidate, checkCurrentRolePermission } from '../../store/clyptus.store';
 
 interface ContextType {
   creditAccount: OrganizationCreditAccount;
@@ -30,6 +30,11 @@ interface ContextType {
 export const RecruiterCandidateSearch: React.FC = () => {
   const context = useOutletContext<ContextType>();
   const showToast = context?.showToast || ((msg: string) => alert(msg));
+  const location = useLocation();
+
+  const canViewCandidates = checkCurrentRolePermission(location.pathname, 'p3');
+  const canSearchProfiles = checkCurrentRolePermission(location.pathname, 'p8');
+  const canShortlist = checkCurrentRolePermission(location.pathname, 'p9');
   const [candidates, setCandidates] = useState<Candidate[]>(INITIAL_CANDIDATES);
   const [searchQuery, setSearchQuery] = useState('');
   const [showShortlistedOnly, setShowShortlistedOnly] = useState(false);
@@ -150,6 +155,20 @@ export const RecruiterCandidateSearch: React.FC = () => {
 
   const myShortlistedCount = shortlistedItems.filter(s => s.recruiterId === currentRecruiterId || s.recruiterId === 'rec_1').length;
 
+  if (!canViewCandidates) {
+    return (
+      <div className="p-12 bg-white border border-slate-200 rounded-3xl text-center space-y-3 shadow-xs my-6">
+        <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
+          <Lock className="w-6 h-6" />
+        </div>
+        <h3 className="text-base font-extrabold text-slate-900">View Candidates Restricted</h3>
+        <p className="text-xs text-slate-500 max-w-md mx-auto">
+          Viewing and managing candidates has been disabled for your role by the Organization Super Admin in the Roles & Permissions Matrix.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       
@@ -172,10 +191,13 @@ export const RecruiterCandidateSearch: React.FC = () => {
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
           <input
             type="text"
-            placeholder="Search candidates by title, skills (Python, FastAPI, React, PostgreSQL)..."
+            disabled={!canSearchProfiles}
+            placeholder={canSearchProfiles ? "Search candidates by title, skills (Python, FastAPI, React, PostgreSQL)..." : "Search candidates disabled by Super Admin..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-blue-500 focus:outline-none"
+            className={`w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-blue-500 focus:outline-none ${
+              !canSearchProfiles ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : ''
+            }`}
           />
         </div>
 
@@ -191,7 +213,12 @@ export const RecruiterCandidateSearch: React.FC = () => {
           <span>Shortlisted Candidates ({myShortlistedCount})</span>
         </button>
 
-        <button className="w-full sm:w-auto px-5 py-2.5 bg-brand-blue-600 hover:bg-brand-blue-700 text-white text-xs font-bold rounded-2xl shadow-sm flex items-center justify-center gap-1.5">
+        <button
+          disabled={!canSearchProfiles}
+          className={`w-full sm:w-auto px-5 py-2.5 text-white text-xs font-bold rounded-2xl shadow-sm flex items-center justify-center gap-1.5 ${
+            canSearchProfiles ? 'bg-brand-blue-600 hover:bg-brand-blue-700 cursor-pointer' : 'bg-slate-300 cursor-not-allowed opacity-60'
+          }`}
+        >
           <Search className="w-4 h-4" /> Search
         </button>
       </div>
@@ -239,15 +266,24 @@ export const RecruiterCandidateSearch: React.FC = () => {
 
                   {/* Shortlist Candidate Button */}
                   <button
-                    onClick={() => handleToggleShortlist(cand)}
+                    disabled={!canShortlist}
+                    onClick={() => {
+                      if (!canShortlist) {
+                        showToast('Permission Restricted: Shortlisting candidates is disabled by Super Admin.');
+                        return;
+                      }
+                      handleToggleShortlist(cand);
+                    }}
                     className={`px-3 py-2 text-xs font-bold rounded-xl border flex items-center gap-1.5 transition-all ${
-                      isShortlisted
+                      !canShortlist
+                        ? 'opacity-50 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-200'
+                        : isShortlisted
                         ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
                         : 'bg-purple-50 text-purple-800 border-purple-200 hover:bg-purple-100'
                     }`}
-                    title={isShortlisted ? 'Remove candidate from shortlisted pipeline' : 'Shortlist candidate for recruiter profile'}
+                    title={!canShortlist ? 'Permission Disabled by Super Admin' : isShortlisted ? 'Remove candidate from shortlisted pipeline' : 'Shortlist candidate'}
                   >
-                    <Star className={`w-4 h-4 ${isShortlisted ? 'fill-white text-white' : 'fill-purple-600 text-purple-600'}`} />
+                    <Star className={`w-4 h-4 ${!canShortlist ? 'text-slate-400' : isShortlisted ? 'fill-white text-white' : 'fill-purple-600 text-purple-600'}`} />
                     <span>{isShortlisted ? 'Shortlisted' : 'Shortlist Candidate'}</span>
                   </button>
                   

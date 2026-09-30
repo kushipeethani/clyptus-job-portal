@@ -1,110 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Check, Lock, Save, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { getStoreRolePermissions, saveStoreRolePermissions } from '../../store/clyptus.store';
+import { RolePermissionRow } from '../../types/clyptus.types';
 
 interface ContextType {
   showToast?: (msg: string) => void;
-}
-
-interface PermissionRow {
-  id: string;
-  label: string;
-  superAdmin: boolean;
-  admin: boolean;
-  recruiter: boolean;
-  disabled?: boolean;
-  adminOnlyNote?: string;
 }
 
 export const RolesPermissions: React.FC = () => {
   const context = useOutletContext<ContextType>();
   const showToast = context?.showToast || ((msg: string) => alert(msg));
 
-  const [permissions, setPermissions] = useState<PermissionRow[]>([
-    {
-      id: 'p1',
-      label: 'View organisation jobs',
-      superAdmin: true,
-      admin: true,
-      recruiter: true,
-    },
-    {
-      id: 'p2',
-      label: 'Create and edit assigned jobs',
-      superAdmin: true,
-      admin: true,
-      recruiter: true,
-    },
-    {
-      id: 'p3',
-      label: 'View and manage candidates',
-      superAdmin: true,
-      admin: true,
-      recruiter: true,
-    },
-    {
-      id: 'p4',
-      label: 'Schedule interviews and manage offers',
-      superAdmin: true,
-      admin: true,
-      recruiter: true,
-    },
-    {
-      id: 'p5',
-      label: 'View organisation analytics',
-      superAdmin: true,
-      admin: true,
-      recruiter: false,
-    },
-    {
-      id: 'p6',
-      label: 'Manage team member access',
-      superAdmin: true,
-      admin: true,
-      recruiter: false,
-    },
-    {
-      id: 'p7',
-      label: 'Allocate tokens to recruiters',
-      superAdmin: true,
-      admin: true,
-      recruiter: false,
-    },
-    {
-      id: 'p8',
-      label: 'Search candidate profiles',
-      superAdmin: true,
-      admin: true,
-      recruiter: true,
-    },
-    {
-      id: 'p9',
-      label: 'Shortlist candidates',
-      superAdmin: true,
-      admin: true,
-      recruiter: true,
-    },
-    {
-      id: 'p10',
-      label: 'Create and send offers',
-      superAdmin: true,
-      admin: true,
-      recruiter: true,
-    },
-  ]);
+  const [permissions, setPermissions] = useState<RolePermissionRow[]>(() => getStoreRolePermissions());
+
+  useEffect(() => {
+    const handleStoreUpdate = (e: any) => {
+      if (e.detail?.type === 'ROLE_PERMISSIONS') {
+        setPermissions(getStoreRolePermissions());
+      }
+    };
+    window.addEventListener('clyptus_store_updated', handleStoreUpdate);
+    return () => window.removeEventListener('clyptus_store_updated', handleStoreUpdate);
+  }, []);
 
   const togglePermission = (id: string, roleKey: 'superAdmin' | 'admin' | 'recruiter') => {
-    setPermissions((prev) =>
-      prev.map((row) => {
-        if (row.id === id && !row.disabled) {
-          return { ...row, [roleKey]: !row[roleKey] };
-        }
-        return row;
-      })
-    );
+    const updated = permissions.map((row) => {
+      if (row.id === id && !row.disabled) {
+        return { ...row, [roleKey]: !row[roleKey] };
+      }
+      return row;
+    });
+    setPermissions(updated);
+    saveStoreRolePermissions(updated);
   };
 
   const handleSaveChanges = () => {
+    saveStoreRolePermissions(permissions);
     showToast('Updated role permission matrix for Super Admin, Admin & Recruiter!');
   };
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useLocation } from 'react-router-dom';
 import { 
   Gift, 
   PlusCircle, 
@@ -10,10 +10,11 @@ import {
   X, 
   FileText, 
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Lock
 } from 'lucide-react';
 import { Offer, OfferStatus } from '../../types/clyptus.types';
-import { INITIAL_OFFERS, getStoreOffers, logAction } from '../../store/clyptus.store';
+import { INITIAL_OFFERS, getStoreOffers, logAction, checkCurrentRolePermission } from '../../store/clyptus.store';
 
 interface ContextType {
   showToast: (msg: string) => void;
@@ -25,6 +26,8 @@ interface ContextType {
 
 export const RecruiterOffers: React.FC = () => {
   const { showToast, activeRecruiter } = useOutletContext<ContextType>();
+  const location = useLocation();
+  const canSendOffers = checkCurrentRolePermission(location.pathname, 'p10');
   const [offers, setOffers] = useState<Offer[]>(() => getStoreOffers());
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [auditModalOffer, setAuditModalOffer] = useState<Offer | null>(null);
@@ -147,8 +150,20 @@ export const RecruiterOffers: React.FC = () => {
         </div>
 
         <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="px-4 py-2.5 bg-brand-blue-600 hover:bg-brand-blue-700 text-white text-xs font-bold rounded-2xl shadow-sm flex items-center gap-1.5 w-fit"
+          disabled={!canSendOffers}
+          onClick={() => {
+            if (!canSendOffers) {
+              showToast('Permission Restricted: Creating and sending offers is disabled by Super Admin.');
+              return;
+            }
+            setIsCreateModalOpen(true);
+          }}
+          title={!canSendOffers ? 'Permission Disabled by Super Admin' : 'Create offer letter'}
+          className={`px-4 py-2.5 text-xs font-bold rounded-2xl shadow-sm flex items-center gap-1.5 w-fit ${
+            canSendOffers
+              ? 'bg-brand-blue-600 hover:bg-brand-blue-700 text-white cursor-pointer'
+              : 'bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed opacity-60'
+          }`}
         >
           <PlusCircle className="w-4 h-4" /> Create Offer Letter
         </button>

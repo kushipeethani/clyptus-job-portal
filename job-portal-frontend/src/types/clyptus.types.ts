@@ -8,6 +8,16 @@ export type AdminPermission =
   | 'REPORTS' 
   | 'USER_MANAGEMENT';
 
+export interface RolePermissionRow {
+  id: string;
+  label: string;
+  superAdmin: boolean;
+  admin: boolean;
+  recruiter: boolean;
+  disabled?: boolean;
+  adminOnlyNote?: string;
+}
+
 export interface AdminUser {
   id: string;
   organizationId: string;

@@ -11,7 +11,8 @@ import {
   Invitation,
   AuditLog,
   ShortlistedCandidate,
-  UserStatus
+  UserStatus,
+  RolePermissionRow
 } from '../types/clyptus.types';
 
 // Clear legacy dummy data from localStorage once on load
@@ -197,6 +198,53 @@ export const saveStoreRecruiters = (recruiters: RecruiterUser[]): void => {
     localStorage.setItem('clyptus_recruiters', JSON.stringify(recruiters));
     window.dispatchEvent(new CustomEvent('clyptus_store_updated', { detail: { type: 'RECRUITERS' } }));
   } catch (err) {}
+};
+
+export const DEFAULT_ROLE_PERMISSIONS: RolePermissionRow[] = [
+  { id: 'p1', label: 'View organisation jobs', superAdmin: true, admin: true, recruiter: true },
+  { id: 'p2', label: 'Create and edit assigned jobs', superAdmin: true, admin: true, recruiter: true },
+  { id: 'p3', label: 'View and manage candidates', superAdmin: true, admin: true, recruiter: true },
+  { id: 'p4', label: 'Schedule interviews and manage offers', superAdmin: true, admin: true, recruiter: true },
+  { id: 'p5', label: 'View organisation analytics', superAdmin: true, admin: true, recruiter: false },
+  { id: 'p6', label: 'Manage team member access', superAdmin: true, admin: true, recruiter: false },
+  { id: 'p7', label: 'Allocate tokens to recruiters', superAdmin: true, admin: true, recruiter: false },
+  { id: 'p8', label: 'Search candidate profiles', superAdmin: true, admin: true, recruiter: true },
+  { id: 'p9', label: 'Shortlist candidates', superAdmin: true, admin: true, recruiter: true },
+  { id: 'p10', label: 'Create and send offers', superAdmin: true, admin: true, recruiter: true },
+];
+
+export const getStoreRolePermissions = (): RolePermissionRow[] => {
+  try {
+    const data = localStorage.getItem('clyptus_role_permissions');
+    if (data) return JSON.parse(data);
+  } catch (err) {}
+  return DEFAULT_ROLE_PERMISSIONS;
+};
+
+export const saveStoreRolePermissions = (permissions: RolePermissionRow[]): void => {
+  try {
+    localStorage.setItem('clyptus_role_permissions', JSON.stringify(permissions));
+    window.dispatchEvent(new CustomEvent('clyptus_store_updated', { detail: { type: 'ROLE_PERMISSIONS' } }));
+  } catch (err) {}
+};
+
+export const hasRolePermission = (role: 'superAdmin' | 'admin' | 'recruiter', permId: string): boolean => {
+  const perms = getStoreRolePermissions();
+  const perm = perms.find((p) => p.id === permId);
+  if (!perm) return true;
+  return !!perm[role];
+};
+
+export const checkCurrentRolePermission = (pathname: string, permId: string): boolean => {
+  let role: 'superAdmin' | 'admin' | 'recruiter' = 'recruiter';
+  if (pathname.includes('/organization-super-admin')) {
+    role = 'superAdmin';
+  } else if (pathname.includes('/admin')) {
+    role = 'admin';
+  } else if (pathname.includes('/recruiter')) {
+    role = 'recruiter';
+  }
+  return hasRolePermission(role, permId);
 };
 
 export const getStoreAuditLogs = (): AuditLog[] => {

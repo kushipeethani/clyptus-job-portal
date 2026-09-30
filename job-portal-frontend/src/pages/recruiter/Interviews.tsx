@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
-import { Calendar, PlusCircle, Video, CheckCircle2, Clock, X, Edit3 } from 'lucide-react';
+import { useOutletContext, useLocation } from 'react-router-dom';
+import { Calendar, PlusCircle, Video, CheckCircle2, Clock, X, Edit3, Lock } from 'lucide-react';
 import { Interview, InterviewStatus } from '../../types/clyptus.types';
-import { INITIAL_INTERVIEWS, logAction } from '../../store/clyptus.store';
+import { INITIAL_INTERVIEWS, logAction, checkCurrentRolePermission } from '../../store/clyptus.store';
 
 interface ContextType {
   showToast: (msg: string) => void;
@@ -12,6 +12,8 @@ const STATUSES: InterviewStatus[] = ['SCHEDULED', 'CONFIRMED', 'RESCHEDULED', 'C
 
 export const RecruiterInterviews: React.FC = () => {
   const { showToast } = useOutletContext<ContextType>();
+  const location = useLocation();
+  const canScheduleInterviews = checkCurrentRolePermission(location.pathname, 'p4');
   const activeRecruiter = (() => {
     const saved = localStorage.getItem('clyptus_active_recruiter');
     return saved ? JSON.parse(saved) : { id: 'rec_1', name: 'Elena Rostova' };
@@ -90,8 +92,20 @@ export const RecruiterInterviews: React.FC = () => {
         </div>
 
         <button
-          onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2.5 bg-brand-blue-600 hover:bg-brand-blue-700 text-white text-xs font-bold rounded-2xl shadow-sm flex items-center gap-1.5 w-fit"
+          disabled={!canScheduleInterviews}
+          onClick={() => {
+            if (!canScheduleInterviews) {
+              showToast('Permission Restricted: Scheduling interviews is disabled by Super Admin.');
+              return;
+            }
+            setIsModalOpen(true);
+          }}
+          title={!canScheduleInterviews ? 'Permission Disabled by Super Admin' : 'Schedule new interview'}
+          className={`px-4 py-2.5 text-xs font-bold rounded-2xl shadow-sm flex items-center gap-1.5 w-fit ${
+            canScheduleInterviews
+              ? 'bg-brand-blue-600 hover:bg-brand-blue-700 text-white cursor-pointer'
+              : 'bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed opacity-60'
+          }`}
         >
           <Calendar className="w-4 h-4" /> Schedule New Interview
         </button>
