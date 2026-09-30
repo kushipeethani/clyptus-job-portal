@@ -60,14 +60,10 @@ export const RecruiterSidebar: React.FC = () => {
     }
   ];
 
-  // State to control dropdown expand/collapse for each section
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    'Hiring Execution': true,
-    'ATS & Candidate Pipeline': true,
-    'AI, Tokens & Performance': true,
-  });
+  // Collapsed by default until user clicks header or visits a page inside that section
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
-  // Ensure current active section is auto-expanded
+  // Auto-expand only the section that contains the current active route
   useEffect(() => {
     navSections.forEach((section) => {
       const hasActiveChild = section.items.some((item) => location.pathname === item.path || location.pathname.startsWith(item.path + '/'));
