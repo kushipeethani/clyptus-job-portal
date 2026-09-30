@@ -27,6 +27,7 @@ export const OrgAdminSidebar: React.FC = () => {
         { label: 'Recruiters', path: '/admin/recruiters', icon: Users, badge: 'Governance' },
       ]
     },
+    /*
     {
       title: 'Recruitment Operations',
       items: [
@@ -37,6 +38,7 @@ export const OrgAdminSidebar: React.FC = () => {
         { label: 'Offers', path: '/admin/offers', icon: Gift },
       ]
     },
+    */
     {
       title: 'Tokens, Billing & Analytics',
       items: [

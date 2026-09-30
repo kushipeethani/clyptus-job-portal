@@ -36,6 +36,7 @@ export const RecruiterSidebar: React.FC = () => {
         { label: 'Saved Candidates', path: '/recruiter/saved-candidates', icon: Bookmark },
       ]
     },
+    /*
     {
       title: 'ATS & Candidate Pipeline',
       items: [
@@ -47,6 +48,7 @@ export const RecruiterSidebar: React.FC = () => {
         { label: 'Recruiter Tasks', path: '/recruiter/tasks', icon: CheckSquare },
       ]
     },
+    */
     {
       title: 'AI, Tokens & Performance',
       items: [

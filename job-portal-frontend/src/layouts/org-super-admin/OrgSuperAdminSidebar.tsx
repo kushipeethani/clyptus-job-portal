@@ -31,6 +31,7 @@ export const OrgSuperAdminSidebar: React.FC = () => {
         { label: 'Roles & Permissions', path: '/organization-super-admin/roles', icon: ShieldAlert },
       ]
     },
+    /*
     {
       title: 'Recruitment Operations',
       items: [
@@ -41,6 +42,7 @@ export const OrgSuperAdminSidebar: React.FC = () => {
         { label: 'Offers', path: '/organization-super-admin/offers', icon: Gift },
       ]
     },
+    */
     {
       title: 'Tokens, Billing & Analytics',
       items: [
