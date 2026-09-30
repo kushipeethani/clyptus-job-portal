@@ -294,21 +294,23 @@ export const AdminManagement: React.FC = () => {
                   <td className="p-4 text-right pr-6 space-x-2">
                     <button
                       onClick={() => handleOpenEditModal(admin)}
-                      className="px-2.5 py-1 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg"
+                      className="px-2.5 py-1 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-colors"
                     >
                       Edit RBAC
                     </button>
                     <button
                       onClick={() => toggleStatus(admin.id, admin.status)}
-                      className={`px-2.5 py-1 text-xs font-bold rounded-lg ${
-                        admin.status === 'ACTIVE' ? 'text-amber-700 bg-amber-50 hover:bg-amber-100' : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
+                      className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-colors ${
+                        admin.status === 'ACTIVE' 
+                          ? 'text-amber-800 bg-amber-50 hover:bg-amber-100 border-amber-200' 
+                          : 'text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border-emerald-200'
                       }`}
                     >
                       {admin.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
                     </button>
                     <button
                       onClick={() => handleDeleteAdmin(admin.id, admin.name)}
-                      className="px-2.5 py-1 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 rounded-lg"
+                      className="px-2.5 py-1 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors"
                     >
                       Delete
                     </button>

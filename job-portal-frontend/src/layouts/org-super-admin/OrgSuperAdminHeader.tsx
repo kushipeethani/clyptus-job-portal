@@ -15,13 +15,13 @@ export const OrgSuperAdminHeader: React.FC<HeaderProps> = ({ creditBalance }) =>
         
         {/* Brand & Dedicated Portal Title */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand-orange-500 text-white flex items-center justify-center font-black text-xl tracking-tighter shadow-md shadow-orange-500/20">
+          <div className="w-10 h-10 rounded-xl bg-brand-blue-600 text-white flex items-center justify-center font-black text-xl tracking-tighter shadow-md shadow-blue-600/20">
             C
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-extrabold text-slate-900 text-base">Clyptus</h1>
-              <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-orange-100 text-brand-orange-700 border border-orange-200">
+              <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-blue-100 text-brand-blue-700 border border-blue-200">
                 Organization Super Admin Portal
               </span>
             </div>
@@ -31,12 +31,12 @@ export const OrgSuperAdminHeader: React.FC<HeaderProps> = ({ creditBalance }) =>
 
         {/* Credit Balance & Logout */}
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 bg-gradient-to-r from-orange-50 to-amber-50 px-3.5 py-1.5 rounded-xl border border-orange-200/80 shadow-xs">
-            <div className="w-7 h-7 rounded-lg bg-brand-orange-500 text-white flex items-center justify-center">
+          <div className="flex items-center gap-2 bg-slate-50 px-3.5 py-1.5 rounded-xl border border-slate-200 shadow-xs">
+            <div className="w-7 h-7 rounded-lg bg-brand-blue-600 text-white flex items-center justify-center">
               <Coins className="w-4 h-4" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold uppercase text-orange-800">Org Credit Balance</span>
+              <span className="text-[10px] font-bold uppercase text-slate-700">Org Credit Balance</span>
               <span className="text-sm font-extrabold text-slate-900 leading-tight">
                 {creditBalance.toLocaleString()} <span className="text-xs font-normal text-slate-500">credits</span>
               </span>
@@ -47,11 +47,11 @@ export const OrgSuperAdminHeader: React.FC<HeaderProps> = ({ creditBalance }) =>
             <img
               src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80"
               alt="Org Super Admin"
-              className="w-9 h-9 rounded-full object-cover border-2 border-brand-orange-500"
+              className="w-9 h-9 rounded-full object-cover border-2 border-brand-blue-600"
             />
             <div className="hidden sm:flex flex-col text-left">
               <span className="text-xs font-extrabold text-slate-900">Sarah Jenkins</span>
-              <span className="text-[10px] font-bold text-orange-600">Org Super Admin</span>
+              <span className="text-[10px] font-bold text-brand-blue-600">Org Super Admin</span>
             </div>
           </div>
 

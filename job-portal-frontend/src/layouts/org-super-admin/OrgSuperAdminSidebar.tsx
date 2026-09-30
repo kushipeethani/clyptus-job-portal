@@ -127,7 +127,7 @@ export const OrgSuperAdminSidebar: React.FC = () => {
                         </div>
 
                         {item.badge && (
-                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-orange-100 text-brand-orange-700 shrink-0">
+                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-100 text-brand-blue-700 shrink-0">
                             {item.badge}
                           </span>
                         )}
